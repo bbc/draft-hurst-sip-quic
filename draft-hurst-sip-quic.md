@@ -304,20 +304,22 @@ entire request. Is this something to consider banning here too?
 
 ### Request Cancellation and Rejection {#cancel-request}
 
-Once a request stream has been opened, the request MAY be cancelled by either endpoint. A client SHOULD gracefully
-cancel a request by making a new request stream and sending a cancellation request as described in
-{{Section 9 of SIP2.0}}, or alternatively using the CANCEL frame.
+Once a request stream has been opened, the request MAY be cancelled by either endpoint. A user agent client SHOULD
+gracefully cancel a request by using the CANCEL frame. A user agent server receiving a `CANCEL` request (not frame)
+MUST respond to the request immediately with a 405 Method Not Allowed error as described in
+{{Section 21.4.6 of SIP2.0}}.
+
+> **Author's Note:** This is because the `CSeq` header has been removed, so we can't use the `CANCEL` request.
 
 An endpoint MAY abruptly cancel any request by resetting both the sending and receiving parts of the streams by
 sending a `RESET_STREAM` frame (see {{Section 19.4 of QUIC-TRANSPORT}}) and a `STOP_SENDING` frame (see
-{{Section 19.5 of QUIC-TRANSPORT}}). A user agent client may wish to do this if it has run out of new streams to open
-in order to send a new cancellation request, or does not wish to use the CANCEL frame.
+{{Section 19.5 of QUIC-TRANSPORT}}). A user agent client may do this if it does not wish to use the CANCEL frame.
 
-When the user agent server cancels a request without perfoming any application processing, the request is considered
-"rejected". The server SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. In this context,
-"processed" means that some data from the request stream was passed to some higher layer of software that might have
-taken some action as a result. The user agent client can treat requests rejected by the user agent server as though
-they had never been sent at all, and may be retried later.
+When the user agent server abruptly cancels a request without perfoming any application processing, the request is
+considered "rejected". The server SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. In this
+context, "processed" means that some data from the request stream was passed to some higher layer of software that
+might have taken some action as a result. The user agent client can treat requests rejected by the user agent server as
+though they had never been sent at all, and may be retried later.
 
 User agent servers MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were partially or fully
 processed. When a server abandons a response after partial processing, it SHOULD abort its response stream with
@@ -642,11 +644,22 @@ HEADERS Frame {
 
 ### CANCEL {#cancel-frame}
 
+The `CANCEL` frame (type=`0x02`) is only sent on the control stream and informs the receiver that its peer that it does
+not wish for the receiver to do any further processing on the message carried by the associated bidirectional stream
+ID. If the receiver has already completed the processing for the message, sent the response and closed the sending end
+of the stream, it MUST discard this frame.
 
 ~~~
+CANCEL Frame {
+  Type (i) = 0x02,
+  Stream ID (i)
 }
 ~~~
+{: #fig=sip-cancel-frame-format title="CANCEL Frame"}
 
+Senders MUST NOT send this stream with a stream ID that has not been acknowledged by its peer. Endpoints that receive
+a `CANCEL` frame with a stream ID that has not yet been opened MUST respond with a connection error of type
+SIP3_CANCEL_STREAM_CLOSED error.
 
 ### SETTINGS {#settings-frame}
 
