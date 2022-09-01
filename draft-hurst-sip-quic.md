@@ -363,8 +363,30 @@ section. The static table defined in {{Appendix A of QPACK}} is designed for use
 header fields that are of little to no interest to SIP endpoints. {{static-table}} in this document defines a
 replacement static table that MUST be used with SIP/3.
 
-The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with
-SIP/3.
+A SIP/3 implementation MAY impose a limit on the maximum size of the encoded field section it will accept on an
+individual SIP message using the SETTINGS_MAX_FIELD_SECTION_SIZE parameter. Unlike HTTP, there is no response code in
+SIP for the size of a header block being too large. If a receiver encounters an encoded field section larger than it
+has promised to accept, then it MUST treat this as stream error of type SIP3_HEADER_TOO_LARGE, and discard the
+response.
+
+{{Section 4.2 of QPACK}} describes the definition of two unidirectional stream types for the encoder and decoder
+streams. The values of the types are identical when used with SIP/3, see {{unidirectional-streams}}.
+
+To bound the memory requirements of the decoder for the QPACK dynamic table, the decoder limits the maximum value the
+encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. Similarly to
+HTTP/3, the dynamic table capacity is determined by the value of the SETTINGS_QPACK_MAX_TABLE_CAPACTY parameter sent by
+the decoder. Use of the dynamic table can be disabled by setting this value to zero. If both endpoints disable use of
+the dynamic table, then the endpoints SHOULD NOT open the encoder and decoder streams.
+
+When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
+table entry that it has not yet received, because QUIC does not guarnatee order between data on different streams. In
+this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. As above, the HTTP/3 setting
+is replicated in SIP/3 in the form of the SETTINGS_QPACK_BLOCKED_STREAMS parameter sent by the decoder, which controls
+the number of streams that are allowed to be "blocked" by pending dynamic table updates. Blocked streams can be avoided
+by sending Huffman-encoded literals. If a decoder encounters more blocked streams than it promised to support, it MUST
+treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
+
+The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
 
 SIP/3 does not use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}) because the correct order of requests can
 be inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and forward
@@ -543,16 +565,18 @@ document, so I invite feedback on any other methods that may be problematic.
 SIP/3 frames are carried on QUIC streams, as described in {{stream-mapping}}. SIP/3 defines a single stream type: the
 request stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
 
-| Frame | Section |
-|:------|:--------|
-| DATA  | {{data-frame}} |
-| HEADERS | {{headers-frame}} |
-| CANCEL | {{cancel-frame}} |
+| Frame    | Request Stream | Control Stream | Section            |
+|:---------|:---------------|:---------------|:-------------------|
+| DATA     | Yes            | No             | {{data-frame}}     |
+| HEADERS  | Yes            | No             | {{headers-frame}}  |
+| CANCEL   | No             | Yes            | {{cancel-frame}}   |
+| SETTINGS | No             | Yes            | {{settings-frame}} |
 {: #frame-types "SIP/3 Frames"}
 
 *[DATA]: #data-frame
 *[HEADERS]: #headers-frame
 *[CANCEL]: #cancel-frame
+*[SETTINGS]: #settings-frame
 
 Note that, unlike QUIC frames, SIP/3 frames can span multiple QUIC or UDP packets.
 
@@ -624,21 +648,68 @@ HEADERS Frame {
 ~~~
 
 
+### SETTINGS {#settings-frame}
 
+The `SETTINGS` frame (type=`0x04`) conveys configuration parameters that affect how endpoints communicate, such as
+preferences and constraints on peer behaviour. The parameters always apply to an entire SIP/3 connection, never a
+single stream. A `SETTINGS` frame MUST be sent as the first frame of each control stream by each peer, and it MUST NOT
+be sent subsequently. If an endpoint receives a second `SETTINGS` frame on the control stream, or any other stream, the
+endpoint MUST respond with a connection error of type SIP3_FRAME_UNEXPECTED.
 
+`SETTINGS` parameters are not negotiated; they describe characteristics of the sending peer that can be used by the
+receiving peer. However, a negotiation can be implied by the use of `SETTINGS`: each peer uses `SETTINGS` to advertise
+a set of supported values. Each peer combines the two sets to conclude which choice will be used. `SETTINGS` does not
+provide a mechanism to identify when the choice takes effect.
 
+Different values for the same parameter can be advertised by each peer. The same parameter MUST NOT occur more than
+once in the `SETTINGS` frame. A receiver MAY treat the presence of duplicate setting identifiers as a connection error
+of type SIP3_SETTINGS_ERROR.
 
+The payload of a `SETTINGS` frame consists of zero or more parameters. Each parameter consists of a parameter
+identifier and a value, both encoded as QUIC variable-length integers.
 
 ~~~
+Parameter {
+  Identifier (i),
+  Value (i)
+}
+
+SETTINGS Frame {
+  Type (i) = 0x04,
   Length (i),
+  Parameter (..) ...
 }
 ~~~
+{: #fig-sip-settings-frame-format title="SETTINGS Frame"}
 
+An implementation MUST ignore any parameter with an identifier it does not understand.
 
+#### Defined SETTINGS Parameters
 
+The following parameters are defined in SIP/3:
 
+SETTINGS_QPACK_MAX_TABLE_CAPACITY (`0x01`):
+: The default value is zero. See {{header-fields}} for usage.
+  {: anchor="SETTINGS_QPACK_MAX_TABLE_CAPACITY"}
+
+SETTINGS_MAX_FIELD_SECTION_SIZE (`0x06`):
+: The default value is unlimited. See {{header-fields}} for usage.
+  {: anchor="SETTINGS_MAX_FIELD_SECTION_SIZE"}
+
+SETTINGS_QPACK_BLOCKED_STREAMS (`0x07`):
+: The default value is zero. See {{header-fields}} for usage.
+  {: anchor="SETTINGS_QPACK_BLOCKED_STREAMS"}
+
+*[SETTINGS_QPACK_MAX_TABLE_CAPACITY]: #
+*[SETTINGS_MAX_FIELD_SECTION_SIZE]: #
+*[SETTINGS_QPACK_BLOCKED_STREAMS]: #
 
 # Error Handling {#error-handling}
+
+*[stream error]: #error-handling
+*[stream errors]: #error-handling (((stream error)))
+*[connection error]: #error-handling
+*[connection errors]: #error-handling (((connection error)))
 
 ## SIP/3 Error Codes {#error-codes}
 
@@ -658,6 +729,14 @@ SIP3_INTERNAL_ERROR (0x0302):
 : An internal error has occured in the SIP stack.
   {: anchor="SIP3_INTERNAL_ERROR"}
 
+SIP3_STREAM_CREATION_ERROR (0x0303):
+: The endpoint detected that its peer created a stream that it will not accept.
+  {: anchor="SIP3_STREAM_CREATION_ERROR"}
+
+SIP3_CLOSED_CRITICAL_STREAM (0x0304):
+: A stream required by the SIP/3 connection was closed or reset.
+  {: anchor="SIP3_CLOSED_CRITICAL_STREAM"}
+
 SIP3_FRAME_ERROR (0x0305):
 : A frame that fails to satisfy layout requirements or with an invalid size was received.
   {: anchor="SIP3_FRAME_ERROR"}
@@ -665,6 +744,14 @@ SIP3_FRAME_ERROR (0x0305):
 SIP3_FRAME_UNEXPECTED (0x0306):
 : A frame was received that was not permitted in the current state or on the current stream.
   {: anchor="SIP3_FRAME_UNEXPECTED"}
+
+SIP3_SETTINGS_ERROR (0x0309):
+: An endpoint detected an error in the payload of a SETTINGS frame.
+  {: anchor="SIP3_SETTINGS_ERROR"}
+
+SIP3_MISSING_SETTINGS (0x030a):
+: No SETTINGS frame was received at the beginning of the control stream.
+  {: anchor="SIP3_MISSING_SETTINGS"}
 
 SIP3_REQUEST_INCOMPLETE (0x030d):
 : An endpoint's stream terminated without containing a fully formed request.
@@ -682,15 +769,31 @@ SIP3_MESSAGE_ERROR (0x030e):
 : A SIP message was {{malformed}} and cannot be processed.
   {: anchor="SIP3_MESSAGE_ERROR"}
 
+SIP3_HEADER_COMPRESSION_FAILED (0x0310):
+: The QPACK decoder failed to interperet an encoded field section and is not able to continue decoding that field
+section
+  {: anchor="SIP3_HEADER_COMPRESSION_FAILED"}
+
+SIP3_HEADER_TOO_LARGE (0x0311):
+: The received encoded field section was larger than the receiver has previously promised to accept. See
+{{header-fields}}.
+  {: anchor="SIP3_HEADER_TOO_LARGE"}
+
 *[SIP3_NO_ERROR]: #
 *[SIP3_GENERAL_PROTOCOL_ERROR]: #
 *[SIP3_INTERNAL_ERROR]: #
+*[SIP3_STREAM_CREATION_ERROR]: #
+*[SIP3_CLOSED_CRITICAL_STREAM]: #
 *[SIP3_FRAME_ERROR]: #
 *[SIP3_FRAME_UNEXPECTED]: #
+*[SIP3_SETTINGS_ERROR]: #
+*[SIP3_MISSING_SETTINGS]: #
 *[SIP3_REQUEST_INCOMPLETE]: #
 *[SIP3_REQUEST_REJECTED]: #
 *[SIP3_REQUEST_CANCELLED]: #
 *[SIP3_MESSAGE_ERROR]: #
+*[SIP3_HEADER_COMPRESSION_FAILED]: #
+*[SIP3_HEADER_TOO_LARGE]: #
 
 # Extensions to SIP/3 {#extensions}
 
