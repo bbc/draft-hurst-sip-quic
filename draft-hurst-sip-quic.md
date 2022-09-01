@@ -530,6 +530,84 @@ this restriction should be relaxed.
 If the {{QPACK}} dynamic table is used, then the unidirectional encoder and decoder streams described in
 {{Section 4.2 of QPACK}} will be in operation in a SIP/3 connection.
 
+*[bidirectional stream]: #bidirectional-streams
+*[bidirectional streams]: #bidirectional-streams (((bidirectional stream)))
+*[unidirectional stream]: #unidirectional-streams
+*[unidirectional streams]: #unidirectional-streams (((unidirectional stream)))
+*[control stream]: #control-streams
+*[control streams]: #control-streams (((control stream)))
+
+## Bidirectional Streams {#bidirectional-streams}
+
+All bidirectional streams are used for SIP requests and responses. These streams are referred to as request streams.
+
+{{SIP2.0}} is designed to run over unreliable transports such as UDP. Use of the QUIC bidirectional stream guarantees
+reliability and ensures that the response can be readily correlated with the request. For this reason, agents
+SHOULD NOT send the `CSeq` header field in requests and responses, as the messages are already associated with a QUIC
+stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions when forwarding message are responsibile for
+handling the mapping of the `CSeq` header field to individual transactions.
+
+## Unidirectional Streams {#unidirectional-streams}
+
+SIP/3 makes use of unidirectional streams. The purpose of a given unidirectional stream is indicated by a stream type,
+which is sent as a variable-length integer at the start of the stream. The format and structure of data that follows
+this integer is determined by the stream type, as it is in {{HTTP3}}.
+
+~~~
+Unidirectional Stream Header {
+  Stream Type (i),
+}
+~~~
+{: #fig-unidirectional-stream-header title="Unidirectional Stream Header"}
+
+One stream type is defined in this document: the control stream. In addition, the HTTP/3 stream
+types defined by {{Section 4.2 of QPACK}} are mapped to the same values in SIP/3 (`0x2` for the encoder stream and
+`0x3` for the decoder stream).
+
+{::comment}
+From RFC 9114:
+
+The performance of HTTP/3 connections in the early phase of their lifetime is sensitive to the creation and exchange of data on unidirectional streams. Endpoints that excessively restrict the number of streams or the flow-control window of these streams will increase the chance that the remote peer reaches the limit early and becomes blocked. In particular, implementations should consider that remote peers may wish to exercise reserved stream behavior (Section 6.2.3) with some of the unidirectional streams they are permitted to use.
+{:/comment}
+
+Each endpoint needs to create at least one unidirectional stream for the SIP/3 control stream. If the QPACK dynamic
+table is used, then each endpoint will open two additional unidirectional streams each. Other extensions might request
+further streams. Therefore, the transport parameters sent by both endpoints MUST allow the peer to create at least
+three unidirectional streams. These transport parameters SHOULD also provide at least 1,024 bytes of flow-control
+credit to each unidirectional stream.
+
+If the stream header indicates a stream type that is not supported by the recipient, the receiver MUST abort reading
+the stream, discard incoming data without further processing, and reset the stream with the SIP3_STREAM_CREATION_ERROR
+error code. The recipient MUST NOT consider unknown stream types to be a connection error of any kind.
+
+As certain stream types can affect connection state, a recipient SHOULD NOT discard data from incoming unidirectional
+streams prior to reading the stream type.
+
+Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer supports
+before sending streams of that type. Implementations MAY send stream types that do not modify the state or semantics of
+existing protocol components before it is known whether the peer supports them, but MUST NOT send stream types that do
+(such as QPACK).
+
+A sender can close or reset a unidirectional stream unless otherwise specified. A receiver MUST tolerate unidirectional
+streams being closed or reset prior to the reception of the unidirectional stream header.
+
+### Control Streams {#control-streams}
+
+A control stream is indicated by a stream type of `0x00`. Data on this stream consists of SIP/3 frames, as defined in
+{{framing-layer}}.
+
+Each endpoint MUST initiate a single control stream at the beginning of the connection and send its SETTINGS frame as
+the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be treated
+as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream per peer is permitted; receipt of a second
+stream claiming to be a control stream MUST be treated as a connection error of type SIP3_STREAM_CREATION_ERROR.
+
+The control stream MUST NOT be closed by the sender, and the receiver MUST NOT request that the sender close the
+control stream. If either control stream is closed at any point, this MUST be treated as a connection error of type
+SIP3_CLOSED_CRITICAL_STREAM. Connection errors are described in {{error-handling}}.
+
+Because the contents of the control stream are used to manage the behaviour of other streams, endpoints SHOULD provide
+enough flow-control credit to keep the peer's control stream from becoming blocked.
+
 # SIP Methods {#methods}
 
 The `REGISTER` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did in earlier
