@@ -73,7 +73,25 @@ transport connection. A future optional extension may introduce the ability to c
 
 # SIP/3 Protocol Overview {#sip3-overview}
 
-TODO.
+SIP/3 provides a transport for SIP semantics using the QUIC transport protocol and an internal framing layer based on
+{{HTTP3}}.
+
+Once a user agent client knows that a user agent server supports SIP/3, it opens a QUIC connection. QUIC provides
+protocol negotiation, stream-based multiplexing, and flow control. SIP transactions are multiplexed across QUIC
+streams, which is described in {{Section 2 of QUIC-TRANSPORT}}. Each request and response consumes a single QUIC
+stream.
+
+Within each stream, the basic unit of SIP/3 communication is a frame as described in {{framing-layer}}. Each frame type
+serves a different purpose. The HEADERS and DATA frames form the basis of the offer/answer transaction model described
+in {{RFC3264}} and are described in {{sip-transaction-framing}}.
+
+In {{SIP2.0}}, some header fields may be compressed by using abbreviated versions. In SIP/3, all request and response
+header fields are compressed for transmission using {{QPACK}}, in which header fields may be mapped to indexed values,
+or literal values may be encoded using a static Huffman code. {{QPACK}} uses two tables for its indexed values; the
+static table is predefined with common header fields and values, and the dynamic table can be used to encode frequently
+used header fields to reduce repetition. Because {{QPACK}}'s static table is designed to work with {{HTTP3}}, this
+specification replaces the default static table defined in {{Appendix A of QPACK}} with the table in
+{{static-table}}.
 
 ## QUIC Transport {#quic-transport}
 
