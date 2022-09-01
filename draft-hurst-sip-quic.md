@@ -273,8 +273,7 @@ On a given request stream, receipt of multiple requests MUST be treated as malfo
 A SIP message (request or response) consists of:
 
 1. the header section, including message control data, sent as a single HEADERS frame,
-2. optionally, the message body, if present, sent as a series of DATA frames, and
-3. optionally, if the initial request used the `INVITE` method, a single DIALOG_TOKEN frame.
+2. optionally, the message body, if present, sent as a series of DATA frames.
 
 Headers are described in {{Section 7.3 of SIP2.0}}. Message bodies are described in {{Section 7.4 of SIP2.0}}.
 
@@ -549,15 +548,11 @@ request stream. This section describes SIP/3 frame formats; see {{frame-types}} 
 | DATA  | {{data-frame}} |
 | HEADERS | {{headers-frame}} |
 | CANCEL | {{cancel-frame}} |
-| DIALOG_TOKEN | {{dialog-token-frame}} |
-| REDEEM_TOKEN | {{redeem-token-frame}} |
 {: #frame-types "SIP/3 Frames"}
 
 *[DATA]: #data-frame
 *[HEADERS]: #headers-frame
 *[CANCEL]: #cancel-frame
-*[DIALOG_TOKEN]: #dialog-token-frame
-*[REDEEM_TOKEN]: #redeem-token-frame
 
 Note that, unlike QUIC frames, SIP/3 frames can span multiple QUIC or UDP packets.
 
@@ -623,58 +618,25 @@ HEADERS Frame {
 
 ### CANCEL {#cancel-frame}
 
-### DIALOG_TOKEN {#dialog-token-frame}
-
-`DIALOG_TOKEN` frames (type=`0x33`) are used to carry an opaque token that are used to associate dialogs across QUIC
-connections, for use when two endpoints currently communicating via one or more proxy servers wish to communicate
-directly.
 
 ~~~
-DIALOG_TOKEN Frame {
-  Type (i) = 0x33,
-  Length (i),
-  Token ID Section (..)
 }
 ~~~
-{: #fig-sip-dialog-token-frame-format title="DIALOG_TOKEN Frame"}
 
-The payload consists of:
 
-Token ID Section: An opaque identifier that identifies the dialog for this transaction. The size and contents of this
-token is implementation-dependent.
 
-`DIALOG_TOKEN` frames MUST only be sent with a SIP response to a request with a method of type `INVITE`.
 
-> **Author's Note:** Would it be a good idea to indicate somewhere which end should initiate the QUIC connection,
-seeing as I've decoupled that above. For example, an endpoint that doesn't have access to STUN or TURN but is still
-stuck behind a NAT gateway could indicate it wants to begin the connection to the remote peer. I'd need to to some
-more thinking around perhaps making this more of an exchange?
 
-### REDEEM_TOKEN {#redeem-token-frame}
 
-`REDEEM_TOKEN` frames (type=`0x34`) are used to carry an opaque token previously given to the transport client in an
-extant dialog with its peer via another delivery path, such as communicating via proxy servers. This frame type
-replaces the `ACK` request described in {{Section 17.1.1.3 of SIP2.0}}.
 
 ~~~
-REDEEN_TOKEN Frame {
-  Type (i) = 0x34,
   Length (i),
-  Token ID Length (i),
-  Token ID Section (..),
-  Encoded Field Section (..)
 }
 ~~~
-{: #fig-sip-redeem-token-frame-format title="REDEEM_TOKEN Frame"}
 
-The payload consists of:
 
-Token ID Length: The length of the token that was previously supplied in a DIALOG_TOKEN frame.
 
-Token ID Section: The opaque identifier that identifies the dialog for a transaction in another QUIC transport session.
 
-Encoded Field Section: {{QPACK}}-encoded request header fields, akin to the header fields delivered in the `ACK`
-request as described in {{Section 17.1.1.3 of SIP2.0}}.
 
 # Error Handling {#error-handling}
 
