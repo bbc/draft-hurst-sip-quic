@@ -17,8 +17,8 @@ venue:
   type: "Individual Draft"
   mail: WG@example.com
   arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  github: bbc/draft-hurst-sip-quic
+  latest: https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html
 
 author:
  -
