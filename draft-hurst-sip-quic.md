@@ -28,17 +28,133 @@ author:
 
 normative:
   SIP2.0: RFC3261
+  RFC3264: # Offer/Answer
   RFC7639:
   QUIC-TRANSPORT: RFC9000
   HTTP-SEMANTICS: RFC9110
   HTTP3: RFC9114
   QPACK: RFC9204
-
 informative:
   RFC8499: # DNS Terminology
   HTTP1.1: RFC9112
   HTTP2: RFC9113
   QUIC-DATAGRAMS: RFC9221
+  QRT:
+    title: "QRT: QUIC RTP Tunnelling"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-hurst-quic-rtp-tunnelling-01
+    author:
+      -
+        ins: S. Hurst
+        name: Sam Hurst
+        org: BBC Research & Development
+  RTP-over-QUIC:
+    title: "RTP over QUIC"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-ietf-avtcore-rtp-over-quic-00
+    author:
+      -
+        ins: J. Ott
+        name: Jörg Ott
+        org: Technical University Munich
+      -
+        ins: M. Engelbart
+        name: Mathis Engelbart
+        org: Technical University Munich
+  QuicR-Arch:
+    title: "QuicR - Media Delivery Protocol over QUIC"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-jennings-moq-quicr-arch-01
+    author:
+      -
+        ins: C. Jennings
+        name: Cullen Jennings
+        org: Cisco
+      -
+        ins: S. Nandakumar
+        name: Suhas Nandakumar
+        org: Cisco
+  QuicR-Proto:
+    title: "QuicR - Media Delivery Protocol over QUIC"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-jennings-moq-quicr-proto-01
+    author:
+      -
+        ins: C. Jennings
+        name: Cullen Jennings
+        org: Cisco
+      -
+        ins: S. Nandakumar
+        name: Suhas Nandakumar
+        org: Cisco
+      -
+        ins: C. Huitema
+        name: Christian Huitema
+        org: Private Octopus Inc.
+  RUSH:
+    title: "RUSH - Reliable (unreliable) streaming protocol"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-kpugin-rush-01
+    author:
+      -
+        ins: K. Pugin
+        name: Kirill Pugin
+        org: Facebook
+      -
+        ins: A. Frindell
+        name: Alan Frindell
+        org: Facebook
+      -
+        ins: J. Cenzano
+        name: Jordi Cenzano
+        org: Facebook
+      -
+        ins: J. Weissman
+        name: Jake Weissman
+        org: Facebook
+  Warp:
+    title: "Warp - Segmented Live Media Transport"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-lcurley-warp-01
+    author:
+      -
+        ins: L. Curley
+        name: Luke Curley
+        org: Twitch
+  SDP-QUIC:
+    title: "SDP Offer/Answer for RTP using QUIC as Transport"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-dawkins-avtcore-sdp-rtp-quic-00
+    author:
+      -
+        ins: S. Dawkins
+        name: Spencer Dawkins
+        org: Tencent America LLC
+  WebTransH3:
+    title: "WebTransport over HTTP/3"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-ietf-webtrans-http3-03
+    author:
+      -
+        ins: A. Frindell
+        name: Alan Frindell
+        org: Facebook
+      -
+        ins: E. Kinnear
+        name: Eric Kinnear
+        org: Apple Inc.
+      -
+        ins: V. Vasiliev
+        name: Victor Vasiliev
+        org: Google
 
 
 --- abstract
@@ -615,6 +731,48 @@ SIP3_MESSAGE_ERROR (0x030e):
 *[SIP3_MESSAGE_ERROR]: #
 
 # Extensions to SIP/3 {#extensions}
+
+# Future Carriage of Media Sessions {#media-sessions}
+
+Future versions of this specification may include support for carrying media sessions within the same QUIC transport
+connection as SIP/3, with the intention being that they will be negotiated using the SDP offer/answer mechanism.
+
+There already exists several attempts to define carriage of media over QUIC transport, such as {{QRT}},
+{{RTP-over-QUIC}}, {{QuicR-Arch}}, {{RUSH}} and {{Warp}}.
+
+In the case of media carried in QUIC datagrams, a user agent cannot propose sending media using this mechanism unless
+its peer has indicated its support for receiving datagrams by means of the `max_datagram_frame_size` parameter as
+described in {{Section 3 of QUIC-DATAGRAMS}}.
+
+In the case of media carried in QUIC streams, if the media streams are transmitted using unidirectional streams, then
+new stream types will need to be defined. This document reserves the stream type value 0x04 for this, see
+{{unidirectional-streams}}. In the unlikely case where media streams are to be transmitted using bidirectional streams,
+the stream type mechanism will need to be extended to cover bidirectional streams, as SIP/3 currently assumes that SIP
+messages have exclusive use of the bidirectional streams.
+
+## Carriage of RTP in a QUIC Transport Session
+
+Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC DATAGRAMs, and with SIP and SDP
+already closely aligned with RTP media sessions it stands to reason that adapting SIP/3 to coexist within the same QUIC
+transport connection would save at least a round trip.
+
+{{QRT}} attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}} also describes
+a different set of SDP attributes to perform a similar task.
+
+Future versions of this document or the above documents may specify a mechanism for signalling that a given media
+session will be carried in the same QUIC connection that the SIP/3 session is going to be carried in.
+
+## Carriage of non-RTP media streaming protocols in a QUIC Transport Session
+
+{{RUSH}} does not specify a means to discover the presence of a RUSH streaming session, nor a mechanism for negotiating
+the encoding parameters of media that is being exchanged. It is possible that this could be performed by SIP/3.
+
+{{Warp}} specifies that sessions are established using HTTP/3 WebTransport ({{WebTransH3}}). However, to the author's
+best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
+SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used.
+
+{{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
+media sessions and endpoint capabilities, and as such SIP/3 probably isn't required.
 
 # Security Considerations
 
