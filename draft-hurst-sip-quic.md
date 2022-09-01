@@ -27,17 +27,17 @@ author:
     email: sam.hurst@bbc.co.uk
 
 normative:
-  SIP/2.0: RFC3261
+  SIP2.0: RFC3261
   RFC7639:
   QUIC-TRANSPORT: RFC9000
   HTTP-SEMANTICS: RFC9110
-  HTTP/3: RFC9114
+  HTTP3: RFC9114
   QPACK: RFC9204
 
 informative:
   RFC8499: # DNS Terminology
-  HTTP/1.1: RFC9112
-  HTTP/2: RFC9113
+  HTTP1.1: RFC9112
+  HTTP2: RFC9113
   QUIC-DATAGRAMS: RFC9221
 
 
@@ -57,7 +57,7 @@ fields carried in SIP transactions.
 The Session Initiation Protocol (SIP) {{!RFC3261}} is widely used for managing media sessions over the internet.
 Examples of these media sessions include internet telephony services, video conferencing and live streaming of media.
 
-{{SIP/2.0}} uses whitespace-delimited text fields to convey SIP messages in a similar format to HTTP/1.1 {{HTTP/1.1}},
+{{SIP2.0}} uses whitespace-delimited text fields to convey SIP messages in a similar format to HTTP/1.1 {{HTTP1.1}},
 and may optionally be transported over TLS (so called "SIPS"). SIP/3, as defined by this document, uses a binary
 framing layer carried over QUIC streams and is protected by the mandatory TLS encryption afforded by the QUIC
 transport connection. A future optional extension may introduce the ability to carry SIP messages in QUIC Datagrams
@@ -130,7 +130,7 @@ transport server endpoint, then the request stream is carried on a server-initia
 
 Each SIP transaction has exclusive use of a request stream. Only one request may be made per request stream. The user
 agent server sends zero or more provisional responses on the same stream as the request, followed by one or more final
-responses. See {{Section 7.2 of SIP/2.0}} for a description of provisional and final responses.
+responses. See {{Section 7.2 of SIP2.0}} for a description of provisional and final responses.
 
 SIP/3 does not use any unidirectional QUIC streams.
 
@@ -142,7 +142,7 @@ A SIP message (request or response) consists of:
 2. optionally, the message body, if present, sent as a series of DATA frames, and
 3. optionally, if the initial request used the `INVITE` method, a single DIALOG_TOKEN frame.
 
-Headers are described in {{Section 7.3 of SIP/2.0}}. Message bodies are described in {{Section 7.4 of SIP/2.0}}.
+Headers are described in {{Section 7.3 of SIP2.0}}. Message bodies are described in {{Section 7.4 of SIP2.0}}.
 
 Receipt of an invalid sequence of frames MUST be treated as a connection error of type SIP3_FRAME_UNEXPECTED. In
 particular, a DATA frame before any HEADERS frame is considered invalid. Other frame types, especially unknown frame
@@ -173,7 +173,7 @@ entire request. Is this something to consider banning here too?
 
 Once a request stream has been opened, the request MAY be cancelled by either endpoint. A client SHOULD gracefully
 cancel a request by making a new request stream and sending a cancellation request as described in
-{{Section 9 of SIP/2.0}}, or alternatively using the CANCEL frame.
+{{Section 9 of SIP2.0}}, or alternatively using the CANCEL frame.
 
 An endpoint MAY abruptly cancel any request by resetting both the sending and receiving parts of the streams by
 sending a `RESET_STREAM` frame (see {{Section 19.4 of QUIC-TRANSPORT}}) and a `STOP_SENDING` frame (see
@@ -208,7 +208,7 @@ A malformed request or response is one that is an otherwise valid sequence of fr
 * the inclusion of invalid characters in field names or values.
 
 A request or response that is defined as having content when it contains a `Content-Length` header field (see
-{{Section 18.3 of SIP/2.0}}) is malformed if the value of the `Content-Length` header field does not equal the sum of
+{{Section 18.3 of SIP2.0}}) is malformed if the value of the `Content-Length` header field does not equal the sum of
 the DATA frame lengths received.
 
 Intermediaries that process SIP requests or responses such as a proxy server MUST NOT forward a malformed request or
@@ -221,7 +221,7 @@ resetting the stream. Clients MUST NOT accept a malformed response.
 
 ## SIP Header Fields {#header-fields}
 
-SIP messages carry metadata as a series of key-value pairs called "SIP header fields"; see {{Section 7.3 of SIP/2.0}}.
+SIP messages carry metadata as a series of key-value pairs called "SIP header fields"; see {{Section 7.3 of SIP2.0}}.
 For a listing of registered SIP header fields, see the "Session Initiation Protocol (SIP) Parameters - Header Fields
 Registry" maintained at <https://www.iana.org/assignments/sip-parameters/sip-parameters.xhtml#sip-parameters-2>.
 
@@ -230,10 +230,10 @@ section. The static table defined in {{Appendix A of QPACK}} is designed for use
 header fields that are of little to no interest to SIP endpoints. {{static-table}} in this document defines a
 replacement static table that MUST be used with SIP/3.
 
-The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP/2.0}} MUST NOT be used with
+The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with
 SIP/3.
 
-SIP/3 does not use the `CSeq` header field (see {{Section 20.16 of SIP/2.0}}) because the correct order of requests can
+SIP/3 does not use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}) because the correct order of requests can
 be inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and forward
 SIP/3 messages as earlier versions of SIP are responsible for defining the value carried in the `CSeq` header field for
 those messages, and the mapping of those values back to the requisite SIP/3 request stream.
@@ -263,9 +263,9 @@ Contact: "Mr. Watson" <sip:watson@example.com>;
 
 ### SIP Control Data
 
-Similar to {{HTTP/2}} and {{HTTP/3}}, SIP/3 employs a series of pseudo-header fields where the field name begins with
+Similar to {{HTTP2}} and {{HTTP3}}, SIP/3 employs a series of pseudo-header fields where the field name begins with
 the `:` character (ASCII 0x3a). These pseudo-header fields convey message control data, which replaces the
-`Request-Line` described in {{Section 7.1 of SIP/2.0}}.
+`Request-Line` described in {{Section 7.1 of SIP2.0}}.
 
 Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
 defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
@@ -285,10 +285,10 @@ The following pseudo-header fields are defined for requests:
 
 ":method": Contains the SIP method. See {{methods}} to understand SIP/3-specific usages of SIP methods.
 
-":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP/2.0}}.
+":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP2.0}}.
 
 All SIP/3 requests MUST include exactly one value for the `:method` and `:request-uri` pseudo-header fields. The
-`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP/2.0}} is omitted, as the SIP version is
+`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP2.0}} is omitted, as the SIP version is
 given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 requests
 implicitly have a protocol version of "3.0".
 
@@ -330,7 +330,7 @@ preference for SIP/3.
 
 ## Transactions
 
-In {{SIP/2.0}}, messages pertaining to a given SIP transaction are identified as such using the branch parameter on the
+In {{SIP2.0}}, messages pertaining to a given SIP transaction are identified as such using the branch parameter on the
 `Via:` header fields carried in requests and responses. In SIP/3, individual transactions are tracked using the QUIC
 streams that are used to carry them. SIP/3 endpoints MAY omit this parameter. For intermediaries converting between
 SIP/3 and other versions of SIP, these endpoints SHOULD insert missing branch parameters, which MAY simply be a textual
@@ -338,7 +338,7 @@ representation of the stream IDs used.
 
 ## Dialogs
 
-In {{SIP/2.0}}, dialogs are tracked by use of the `Call-ID:` header field and the `tag=` parameter on the `To:` and
+In {{SIP2.0}}, dialogs are tracked by use of the `Call-ID:` header field and the `tag=` parameter on the `To:` and
 `From:` header fields. This document introduces a dialog token in {{methods}} which is used only to replace the `ACK`
 request sent after the `INVITE` request. This document does not introduce any additional means for tracking dialogs,
 and as such the `Call-ID:` and `tag=` values MUST be used in SIP/3.
@@ -359,7 +359,7 @@ data in both directions. SIP/3 makes no direct use of unidirectional streams, an
 exclusively for all SIP requests and responses. A bidirectional stream ensures that the response can be readily
 correlated with the request. These streams are referred to as request streams.
 
-{{SIP/2.0}} is designed to run over unreliable transports such as UDP. As QUIC guarantees reliability, some of the
+{{SIP2.0}} is designed to run over unreliable transports such as UDP. As QUIC guarantees reliability, some of the
 features of SIP/2.0 are no longer required. For example, usage of the `ACK` method is prohibited by SIP/3 (see
 {{methods}}). In addition, user agents SHOULD NOT send the `CSeq` header field in requests and responses, as the
 messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions
@@ -375,7 +375,7 @@ If the {{QPACK}} dynamic table is used, then the unidirectional encoder and deco
 
 # SIP Methods {#methods}
 
-The `REGISTER` and `BYE` methods as described in {{SIP/2.0}} continue to operate in SIP/3 as they did in earlier
+The `REGISTER` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did in earlier
 versions of the protocol.
 
 The `INVITE` method works in mostly the same way, with some differences. In the case of the initial `INVITE`, the
@@ -520,7 +520,7 @@ more thinking around perhaps making this more of an exchange?
 
 `REDEEM_TOKEN` frames (type=`0x34`) are used to carry an opaque token previously given to the transport client in an
 extant dialog with its peer via another delivery path, such as communicating via proxy servers. This frame type
-replaces the `ACK` request described in {{Section 17.1.1.3 of SIP/2.0}}.
+replaces the `ACK` request described in {{Section 17.1.1.3 of SIP2.0}}.
 
 ~~~
 REDEEN_TOKEN Frame {
@@ -540,7 +540,7 @@ Token ID Length: The length of the token that was previously supplied in a DIALO
 Token ID Section: The opaque identifier that identifies the dialog for a transaction in another QUIC transport session.
 
 Encoded Field Section: {{QPACK}}-encoded request header fields, akin to the header fields delivered in the `ACK`
-request as described in {{Section 17.1.1.3 of SIP/2.0}}.
+request as described in {{Section 17.1.1.3 of SIP2.0}}.
 
 # Error Handling {#error-handling}
 
