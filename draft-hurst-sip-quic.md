@@ -94,14 +94,14 @@ Should probably mint the ALPN token "sips/2.0" as well, for backwards compatibil
 
 > **RFC Editor's Note:** Please remove this section prior to publication of a final version of this document.
 
-Only implementations of the final, published RFC can identify themselves as "sips3". Until such an RFC exists,
+Only implementations of the final, published RFC can identify themselves as "sips/3". Until such an RFC exists,
 implementations MUST NOT identify themselves using this string. Implementations of draft versions of the protocol MUST
 add the string "-h" and the corresponding draft number to the identifier. For example, draft-hurst-sip-quic-00 is
-identified using the string "sips3-h00".
+identified using the string "sips/3-h00".
 
 Non-compatible experiments that are based on these draft versions MUST append the string "-" and an experiment name to
 the identifier. For example, an experimental implementation based on draft-hurst-sip-quic-00 which uses QUIC datagrams
-instead of QUIC streams to carry SIP messages might identify itself as "sips3-h00-datagrams". Note that any label MUST
+instead of QUIC streams to carry SIP messages might identify itself as "sips/3-h00-datagrams". Note that any label MUST
 conform to the "token" syntax defined in {{Section 5.6.2 of HTTP-SEMANTICS}}. Experimenters are encouraged to
 coordinate their experiments.
 
