@@ -183,8 +183,64 @@ transport connection. A future optional extension may introduce the ability to c
 
 {::boilerplate bcp14-tagged}
 
+This document uses the variable-length integer encoding from {{Section 16 of QUIC-TRANSPORT}}.
+
+Packet and frame diagrams in this document use the format described in {{Section 1.3 of QUIC-TRANSPORT}}.
+
 ## Definitions {#definitions}
 
+The following terms are used:
+
+abort:
+: An abrupt termination of a connection or stream, possibly due to an error
+  condition.
+
+endpoint:
+: Either the client or server of the connection.
+
+connection:
+: A transport-layer connection between two endpoints using QUIC as the transport protocol.
+
+connection error:
+: An error that affects the entire SIP/3 connection.
+
+frame:
+: The smallest unit of communication on a stream in SIP/3, consisting of a header and a variable-length sequence of
+  bytes structured according to the frame type.
+
+  Protocol elements called "frames" exist in both this document and {{QUIC-TRANSPORT}}. Where frames from
+  {{QUIC-TRANSPORT}} are referenced, the frame name will be prefaced with "QUIC".  For example, "QUIC CONNECTION_CLOSE
+  frames".  References without this preface refer to frames defined in {{frame-definitions}}.
+
+SIP/3 connection:
+: A QUIC connection where the negotiated application protocol is SIP/3.
+
+peer:
+: An endpoint.  When discussing a particular endpoint, "peer" refers to the endpoint that is remote to the primary
+  subject of discussion.
+
+receiver:
+: An endpoint that is receiving frames.
+
+sender:
+: An endpoint that is transmitting frames.
+
+stream:
+: A bidirectional or unidirectional bytestream provided by the QUIC transport. All streams within an SIP/3 connection
+  can be considered "SIP/3 streams", but multiple stream types are defined within SIP/3.
+
+stream error:
+: An application-level error on the individual stream.
+
+transport client:
+: The endpoint that initiates a SIP/3 connection.
+
+transport server:
+: The endpoint that accepts a SIP/3 connection.
+
+The terms "call", "dialog", "header", "header field", "header field value", "initiator", "invitee", "message",
+"method", "proxy server", "request", "(SIP) transaction", "user agent client" and "user agent server" are defined in
+{{Section 6 of SIP2.0}}.
 
 # SIP/3 Protocol Overview {#sip3-overview}
 
