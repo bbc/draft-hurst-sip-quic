@@ -926,7 +926,10 @@ Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages ov
 already closely aligned with RTP media sessions it stands to reason that adapting SIP/3 to coexist within the same QUIC
 transport connection would save at least a round trip.
 
-{{QRT}} attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}} also describes
+QRT only defines a way to carry RTP and RTCP in QUIC DATAGRAMs. RTP-over-QUIC defines a way to carry RTP and RTCP over
+QUIC streams (without specifying whether they are to be sent over bi- or unidirectional streams) and QUIC DATAGRAMs.
+
+QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}} also describes
 a different set of SDP attributes to perform a similar task.
 
 Future versions of this document or the above documents may specify a mechanism for signalling that a given media
@@ -935,11 +938,20 @@ session will be carried in the same QUIC connection that the SIP/3 session is go
 ## Carriage of non-RTP media streaming protocols in a QUIC Transport Session
 
 {{RUSH}} does not specify a means to discover the presence of a RUSH streaming session, nor a mechanism for negotiating
-the encoding parameters of media that is being exchanged. It is possible that this could be performed by SIP/3.
+the encoding parameters of media that is being exchanged. RUSH has two modes of operation, Normal and Multi Stream
+modes. Normal mode, as described in {{Section 4.3.1 of RUSH}}, uses a single bidirectional QUIC stream to send and
+receive media streams. Multi Stream mode, as described in {{Section 4.3.2 of RUSH}}, uses a bidirectional QUIC
+stream for each individual frame. Bidirectional streams appear to be used in order to give error feedback, as opposed
+to having a seperate control stream for handling errors or using the QUIC transport error mechanism. If the stream type
+mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then SIP/3 could
+be used with RUSH.
 
 {{Warp}} specifies that sessions are established using HTTP/3 WebTransport ({{WebTransH3}}). However, to the author's
 best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
-SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used.
+SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used. Warp uses
+unidirectional streams for sending media. Media is sent in ISO-BMFF "segments", similar to MPEG-DASH, with each stream
+carrying a single segment. This can easily be used with the resered media stream type reserved in
+{{unidirectional-streams}}.
 
 {{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
 media sessions and endpoint capabilities, and as such SIP/3 probably isn't required.
