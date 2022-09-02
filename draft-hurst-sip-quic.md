@@ -758,7 +758,7 @@ SETTINGS Frame {
 
 An implementation MUST ignore any parameter with an identifier it does not understand.
 
-#### Defined SETTINGS Parameters
+#### Defined SETTINGS Parameters {#defined-settings}
 
 The following parameters are defined in SIP/3:
 
@@ -875,6 +875,32 @@ SIP3_HEADER_TOO_LARGE (0x0311):
 *[SIP3_HEADER_TOO_LARGE]: #
 
 # Extensions to SIP/3 {#extensions}
+
+SIP/3 permits extension of the protocol. Within the limitations described in this section, protocol extensions can be
+used to provide additional services or alter any aspect of the protocol. Extensions are effective only within the scope
+of a single SIP/3 connection.
+
+This applies only to the protocol elements defined in this document. This does not affect the existing options for
+extending SIP, such as defining new methods, status codes or header fields.
+
+Extensions are permitted to use new frame types ({{frame-definitions}}), new settings ({{defined-settings}}), new error
+codes ({{error-codes}}), or new stream types ({{stream-mapping}}).
+
+> **RFC Editor's Note:** Establish registries for frame types, settings, error codes and stream types.
+
+Implementations MUST ignore unknown or unsupported values in all extensible protocol elements. This means that any of
+these extension points can be safely used by extensions without prior arrangement or negotiation. However, where a
+known frame type is required to be in a specific location, such as the SETTINGS frame (see {{control-streams}}), an
+unknown frame type does not satisfy that requirement and SHOULD be treated as an error.
+
+Extensions that could change the semantics of existing protocol components MUST be negotiated before being used. For
+example, an extension that allows the multiplexing of other protocols such as media transport protocols over
+bidirectional QUIC streams MUST NOT be used until the peer has given a positive signal that this is acceptible.
+
+This document does not mandate a specific method for negotiating the use of any extension, but it notes that a
+parameter ({{defined-settings}}) could be used for that purpose. If both peers set a value that indicates willingness
+to use the extension, then the extension can be used. If a parameter is used in this way, the default value MUST be
+defined in such a way that the extension is disabled if the setting is omitted.
 
 # Future Carriage of Media Sessions {#media-sessions}
 
