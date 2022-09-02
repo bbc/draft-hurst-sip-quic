@@ -185,7 +185,6 @@ transport connection. A future optional extension may introduce the ability to c
 
 ## Definitions {#definitions}
 
-*[malformed]: #
 
 # SIP/3 Protocol Overview {#sip3-overview}
 
@@ -353,6 +352,7 @@ SIP3_MESSAGE_ERROR.
 For malformed requests, a user agent server MAY send an HTTP response indicating the error prior to closing or
 resetting the stream. Clients MUST NOT accept a malformed response.
 
+*[malformed]: #
 
 ## SIP Header Fields {#header-fields}
 
@@ -430,11 +430,11 @@ defined in this document. However, an extension could negotiate a modification o
 Pseudo-header fields are only valud in the context in which they are defined. Pseudo-header fields defined for requests
 MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
 fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
-invalid pseudo-header fields as {{malformed}}.
+invalid pseudo-header fields as malformed.
 
 All pseudo-header fields MUST appear in the header section before regular header fields. Any request or response that
 contains a pseudo-header field that appears in a header section after a regular header field MUST be treated as
-{{malformed}}.
+malformed.
 
 #### Request Pseudo-header fields
 
@@ -450,7 +450,7 @@ given by the negotiated ALPN version string as described in {{quic-transport}}, 
 implicitly have a protocol version of "3.0".
 
 A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
-is {{malformed}}.
+is malformed.
 
 # Compatibility With Earlier SIP Versions {#compatiblity}
 
@@ -864,7 +864,7 @@ SIP3_REQUEST_CANCELLED (0x030c):
   {: anchor="SIP3_REQUEST_CANCELLED"}
 
 SIP3_MESSAGE_ERROR (0x030e):
-: A SIP message was {{malformed}} and cannot be processed.
+: A SIP message was malformed and cannot be processed.
   {: anchor="SIP3_MESSAGE_ERROR"}
 
 SIP3_HEADER_COMPRESSION_FAILED (0x0310):
