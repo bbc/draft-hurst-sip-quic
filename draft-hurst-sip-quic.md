@@ -468,9 +468,9 @@ is malformed.
 {: #fig-mixed-sip-versions title="Example showing mixed SIP versions"}
 
 In the above example, the proxy initiator, invitee and proxy server identified as "Proxy A" all support SIP/3, but the
-proxy server identified as "Proxy B" does not, and only supports SIP/2.0 over UDP. When Proxy A attempts to connect to
-Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV record {{?RFC2782}}
-may have indicated that the server only supports `_sips` services over TCP, thereby implying SIP/2.0.
+proxy server identified as "Proxy B" does not, and only supports SIP/2.0 over TCP/TLS and UDP. When Proxy A attempts to
+connect to Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV record
+{{?RFC2782}} may have indicated that the server only supports `_sips` services over TCP, thereby implying SIP/2.0.
 
 If Proxy B only supported unencrypted SIP over UDP, then Proxy A MUST NOT forward messages from the secure SIP/3 over
 an unencrypted protocol, as this could constitute a downgrade attack. Instead, if the designated invitee cannot be
@@ -983,13 +983,13 @@ The "sips/3" string identifies SIP/3:
   Specification:
   : This document
 
-This document creates a new registration of SIP/2.0 over DTLS in the "TLS Application-Layer Protocol Negotiation (ALPN)
+This document creates a new registration of SIP/2.0 over TLS in the "TLS Application-Layer Protocol Negotiation (ALPN)
 Protocol IDs" registry established in {{?RFC7301}}.
 
-The "sips/2.0" string identifies SIP/2.0 over DTLS:
+The "sips/2.0" string identifies SIP/2.0 over TLS:
 
   Protocol:
-  : SIP/2.0 over DTLS
+  : SIP/2.0 over TLS
 
   Identification Sequence:
   : 0x73 0x69 0x70 0x73 0x2F 0x32 0x2E 0x30 ("sips/2.0")
