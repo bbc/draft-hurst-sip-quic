@@ -563,6 +563,8 @@ One stream type is defined in this document: the control stream. In addition, th
 types defined by {{Section 4.2 of QPACK}} are mapped to the same values in SIP/3 (`0x2` for the encoder stream and
 `0x3` for the decoder stream).
 
+In addition, the stream type value of `0x4` is reserved by this document for future use as the media stream.
+
 {::comment}
 From RFC 9114:
 
@@ -962,7 +964,185 @@ TODO Security
 
 # IANA Considerations
 
-TODO IANA actions
+This document registers a new ALPN protocol IDs ({{iana-alpn}}) and creates new registries that manage the assignment
+of code points in SIP/3 ({{iana-registries}}).
+
+## Registration of SIP Identification Strings {#iana-alpn}
+
+This document creates a new registration of SIP/3 in the "TLS Application-Layer Protocol Negotiation (ALPN) Protocol
+IDs" registry established in {{?RFC7301}}.
+
+The "sips/3" string identifies SIP/3:
+
+  Protocol:
+  : SIP/3
+
+  Identification Sequence:
+  : 0x73 0x69 0x70 0x73 0x2F 0x33 ("sips/3")
+
+  Specification:
+  : This document
+
+This document creates a new registration of SIP/2.0 over DTLS in the "TLS Application-Layer Protocol Negotiation (ALPN)
+Protocol IDs" registry established in {{?RFC7301}}.
+
+The "sips/2.0" string identifies SIP/2.0 over DTLS:
+
+  Protocol:
+  : SIP/2.0 over DTLS
+
+  Identification Sequence:
+  : 0x73 0x69 0x70 0x73 0x2F 0x32 0x2E 0x30 ("sips/2.0")
+
+  Specification:
+  : {{SIP2.0}}
+
+This document creates a new registration of SIP/2.0 over UDP in the "TLS Application-Layer Protocol Negotation (ALPN)
+Protocol IDs" registry established in {{?RFC7301}}.
+
+The "sip/2.0" string identifies SIP/2.0 over UDP:
+
+  Protocol:
+  : SIP/2.0 over UDP
+
+  Identification Sequence:
+  : 0x73 0x69 0x70 0x2F 0x32 0x2E 0x30 ("sip/2.0")
+
+  Specification:
+  : {{SIP2.0}}
+
+## New Registries {#iana-registries}
+
+New registries created in this document operate under the QUIC registration policy documented in
+{{Section 22.1 of QUIC-TRANSPORT}}. These registries all include the common set of fields listed in
+{{Section 22.1.1 of QUIC-TRANSPORT}}. These registries are collected under the "Session Initiation Protocol version 3
+(SIP/3)" heading.
+
+The initial allocations in these registries are all assigned permanent status and list a change controller of the IETF
+and a contact of the $ working group (which WG?).
+
+### Frame Types {#iana-frames}
+
+This document establishes a registry for SIP/3 frame type codes. The "SIP/3 Frame Types" registry governs a 62-bit
+space. This registry follows the QUIC registry policy; see {{iana-registries}}. Permanent registrations in this
+registry are assigned using the Specification Required policy {{!RFC8126}}), except for values between `0x00` and
+`0x3f` (in hexadecimal; inclusive), which are assigned using Standards Action or IESG Approval as defined in
+{{Sections 4.9 and 4.10 of RFC8126}}.
+
+In addition to common fields as described in {{iana-registries}}, permanent registrations in this registry MUST
+include the following fields:
+
+Frame type:
+: A name or label for the frame type.
+
+Specifications of frame types MUST include a description of the frame layout and its semantics, including any parts of
+the frame that are conditionally present.
+
+The entries in {{fig-iana-frame-table}} are registered by this document.
+
+|:-----------|:-------|:-------------------|
+| Frame Type | Value  | Sepcification      |
+|:-----------|:-------|:-------------------|
+| DATA       | `0x00` | {{data-frame}}     |
+| HEADERS    | `0x01` | {{headers-frame}}  |
+| CANCEL     | `0x02` | {{cancel-frame}}   |
+| SETTINGS   | `0x04` | {{settings-frame}} |
+{: #fig-iana-frame-table title="Initial SIP/3 Frame Types"}
+
+### Settings Parameters {#iana-parameters}
+
+This document establishes a registry for SIP/3 parameters. The "SIP/3 Parameters" registry governs a 62-bit space. This
+registry follows the QUIC registry policy; see {{iana-registries}}. Permanent registrations in this registry are
+assigned using the Specification Required policy {{!RFC8126}}), except for values between `0x00` and `0x3f` (in
+hexadecimal; inclusive), which are assigned using Standards Action or IESG Approval as defined in
+{{Sections 4.9 and 4.10 of RFC8126}}.
+
+In addition to common fields as described in {{iana-registries}}, permanent registrations in this registry MUST include
+the following fields:
+
+Parameter Name:
+: A symbolic name for the parameter. Specifying a parameter name is optional.
+
+Default:
+: The value of the parameter nless otherwise indicated. A default SHOULD be the most restrictive possible value.
+
+The entries in {{fig-iana-parameter-table}} are registered by this document.
+
+|:----------------------------------|:-------|:---------------------|:----------|
+| Parameter Name                    | Value  | Specification        | Default   |
+| SETTINGS_QPACK_MAX_TABLE_CAPACITY | `0x01` | {{defined-settings}} | 0         |
+| SETTINGS_MAX_FIELD_SECTION_SIZE   | `0x06` | {{defined-settings}} | Unlimited |
+| SETTINGS_QPACK_BLOCKED_STREAMS    | `0x07` | {{defined-settings}} | 0         |
+{: #fig-iana-parameter-table title="Initial SIP/3 Parameters"}
+
+### Error Codes {#iana-error-codes}
+
+This document establishes a registry for SIP/3 error codes. The "SIP/3 Error Codes" registry governs a 62-bit space.
+This registry follows the QUIC registry policy; see {{iana-registries}}. Permanent registrations in this registry are
+assigned using the Specification Required policy {{!RFC8126}}), except for values between `0x0300` and `0x033f` (in
+hexadecimal; inclusive), which are assigned using Standards Action or IESG Approval as defined in
+{{Sections 4.9 and 4.10 of RFC8126}}.
+
+In addition to common fields as described in {{iana-registries}}, permanent registrations in this registry MUST include
+the following fields:
+
+Name:
+: A name for the error code.
+
+Description:
+: A brief description of the error code semantics.
+
+The entries in {{fig-iana-error-table}} are registered by this document. These error codes were selected from the range
+that operates on a Specification Required policy to avoid collisions with HTTP/2 and HTTP/3 error codes.
+
+|:-------------------------------|:---------|:-------------------------------------------------|:----------------|
+| Name                           | Value    | Description                                      | Specification   |
+|:-------------------------------|:---------|:-------------------------------------------------|:----------------|
+| SIP3_NO_ERROR                  | `0x0300` | No error.                                        | {{error-codes}} |
+| SIP3_GENERAL_PROTOCOL_ERROR    | `0x0301` | Non-specific error code.                         | {{error-codes}} |
+| SIP3_INTERNAL_ERROR            | `0x0302` | An internal error occured.                       | {{error-codes}} |
+| SIP3_STREAM_CREATION_ERROR     | `0x0303` | Peer created an unacceptable stream.             | {{error-codes}} |
+| SIP3_CLOSED_CRITICAL_STREAM    | `0x0304` | A required stream was closed.                    | {{error-codes}} |
+| SIP3_FRAME_ERROR               | `0x0305` | An invalid frame was received.                   | {{error-codes}} |
+| SIP3_FRAME_UNEXPECTED          | `0x0306` | A not permitted frame was received.              | {{error-codes}} |
+| SIP3_CANCEL_FRAME_CLOSED       | `0x0307` | A CANCEL frame referenced an unopened stream ID. | {{error-codes}} |
+| SIP3_SETTINGS_ERROR            | `0x0309` | An error was detected in a SETTINGS frame.       | {{error-codes}} |
+| SIP3_MISSING_SETTINGS          | `0x030a` | No SETTINGS frame was received.                  | {{error-codes}} |
+| SIP3_REQUEST_REJECTED          | `0x030b` | User agent server rejected a request.            | {{error-codes}} |
+| SIP3_REQUEST_CANCELLED         | `0x030c` | The request or its response is cancelled.        | {{error-codes}} |
+| SIP3_REQUEST_INCOMPLETE        | `0x030d` | Stream terminated without a full request.        | {{error-codes}} |
+| SIP3_MESSAGE_ERROR             | `0x030e` | A SIP message was malformed.                     | {{error-codes}} |
+| SIP3_HEADER_COMPRESSION_FAILED | `0x0310` | Failed to interpret an encoded field section.    | {{error-codes}} |
+| SIP3_HEADER_TOO_LARGE          | `0x0311` | Received encoded field section is too large.     | {{error-codes}} |
+{: #fig-iana-error-table title="Initial SIP/3 Error Codes"}
+
+### Stream Types {#iana-stream-types}
+
+This document establishes a registry for SIP/3 stream types. The "SIP/3 Stream Types" registry governs a 62-bit space.
+This registry follows the QUIC registry policy; see {{iana-registries}}. Permanent registrations in this registry are
+assigned using the Specification Required policy {{!RFC8126}}), except for values between `0x00` and `0x3f` (in
+hexadecimal; inclusive), which are assigned using Standards Action or IESG Approval as defined in
+{{Sections 4.9 and 4.10 of RFC8126}}.
+
+In addition to common fields as described in {{iana-registries}}, permanent registrations in this registry MUST include
+the following fields:
+
+Stream Type:
+: A name or label for the stream type.
+
+Sender:
+: Which endpoint on a SIP/3 connection may initiate a stream of this type. Values are "Client", "Server", or "Both".
+
+The entries is {{fig-iana-stream-type-table}} are registered by this document.
+
+|:---------------------|:-------|:---------------------------|:-------|
+| Stream Type          | Value  | Specification              | Sender |
+|:---------------------|:-------|:---------------------------|:-------|
+| Control Stream       | `0x00` | {{control-streams}}        | Both   |
+| QPACK Encoder Stream | `0x02` | {{unidirectional-streams}} | Both   |
+| QPACK Decoder Stream | `0x03` | {{unidirectional-streams}} | Both   |
+| Reserved             | `0x04` | {{unidirectional-streams}} | Both   |
+{: #fig-iana-stream-type-table title="Initial SIP/3 Stream Types"}
 
 --- back
 
