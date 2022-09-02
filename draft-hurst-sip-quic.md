@@ -707,9 +707,12 @@ not wish for the receiver to do any further processing on the message carried by
 ID. If the receiver has already completed the processing for the message, sent the response and closed the sending end
 of the stream, it MUST discard this frame.
 
+> **Author's Note:** Remove the length from this frame type as the stream ID field is self-describing.
+
 ~~~
 CANCEL Frame {
   Type (i) = 0x02,
+  Length (i),
   Stream ID (i)
 }
 ~~~
