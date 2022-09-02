@@ -452,6 +452,18 @@ implicitly have a protocol version of "3.0".
 A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
 is malformed.
 
+#### Response Pseudo-header fields
+
+For responses, a single ":status" psuedo-header field is defined that carries the SIP status code, see
+{{Section 7.2 of SIP2.0}}.
+
+All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
+`Reason-Phrase` elements of the `Status-Line` structure in {{Section 7.2 of SIP2.0}} is omitted. The SIP version is
+given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 responses
+implicitly have a protocol version of "3.0". If it is required, for example to provide a human readable string of a
+received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
+listed in {{Section 21 of SIP2.0}}.
+
 # Compatibility With Earlier SIP Versions {#compatiblity}
 
 ~~~
