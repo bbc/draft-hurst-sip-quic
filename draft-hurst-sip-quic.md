@@ -313,7 +313,7 @@ MUST respond to the request immediately with a 405 Method Not Allowed error as d
 
 An endpoint MAY abruptly cancel any request by resetting both the sending and receiving parts of the streams by
 sending a `RESET_STREAM` frame (see {{Section 19.4 of QUIC-TRANSPORT}}) and a `STOP_SENDING` frame (see
-{{Section 19.5 of QUIC-TRANSPORT}}). A user agent client may do this if it does not wish to use the CANCEL frame.
+{{Section 19.5 of QUIC-TRANSPORT}}).
 
 When the user agent server abruptly cancels a request without perfoming any application processing, the request is
 considered "rejected". The server SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. In this
@@ -635,7 +635,10 @@ The `ACK` method is prohibited in SIP/3. In the case where this SIP/3 session is
 transaction on another SIP/3 connection, such as one that goes via one or more SIP/3 proxy servers, then the new
 connection is associated with that previous offser/answer transaction using the REDEEM_TOKEN frame.
 
-User agents should use the CANCEL frame instead of a `CANCEL` method request.
+The `CANCEL` method MUST NOT be used in SIP/3. If a request needs to be cancelled, the CANCEL frame SHOULD be used, or
+the stream for that request reset. Note that even after sending a CANCEL frame or the stream reset, data may still
+arrive on the stream as the messages may already be in flight by the time the CANCEL frame or QUIC RESET_STREAM frame
+({{Section 19.4 of QUIC-TRANSPORT}}) is received and processed by the peer.
 
 > **Author's note:** I have not done a comprehensive review of all SIP/2.0 extensions and their applicability to this
 document, so I invite feedback on any other methods that may be problematic.
@@ -836,6 +839,10 @@ SIP3_FRAME_UNEXPECTED (0x0306):
 : A frame was received that was not permitted in the current state or on the current stream.
   {: anchor="SIP3_FRAME_UNEXPECTED"}
 
+SIP3_CANCEL_FRAME_CLOSED (0x0307):
+: A CANCEL frame was received that referenced an unknown stream ID.
+  {: anchor="SIP3_CANCEL_FRAME_CLOSED"}
+
 SIP3_SETTINGS_ERROR (0x0309):
 : An endpoint detected an error in the payload of a SETTINGS frame.
   {: anchor="SIP3_SETTINGS_ERROR"}
@@ -877,6 +884,7 @@ SIP3_HEADER_TOO_LARGE (0x0311):
 *[SIP3_CLOSED_CRITICAL_STREAM]: #
 *[SIP3_FRAME_ERROR]: #
 *[SIP3_FRAME_UNEXPECTED]: #
+*[SIP3_CANCEL_FRAME_CLOSED]: #
 *[SIP3_SETTINGS_ERROR]: #
 *[SIP3_MISSING_SETTINGS]: #
 *[SIP3_REQUEST_INCOMPLETE]: #
