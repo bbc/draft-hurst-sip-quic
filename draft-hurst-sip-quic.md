@@ -480,7 +480,6 @@ for that transaction.
 When initiating direct communication with an invitee after the conclusion of the initial `INVITE`, the descision to use
 SIP/3 SHOULD be performed as follows:
 
-* If the response from the invitee includes a DIALOG_TOKEN, or
 * If the DNS SRV record for the SIPS URI indicates that the invitee supports SIPS over UDP, or
 * If the `Contact:` header field carries the "v" parameter described in {{contact-extension}} and indicates a
 preference for SIP/3.
@@ -610,30 +609,8 @@ enough flow-control credit to keep the peer's control stream from becoming block
 
 # SIP Methods {#methods}
 
-The `REGISTER` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did in earlier
-versions of the protocol.
-
-The `INVITE` method works in mostly the same way, with some differences. In the case of the initial `INVITE`, the
-invitee may indicate in the `contact:` header field an address for the initiator to communicate directly with the
-invitee. In SIP/2.0, the first request sent directly to the new endpoint would be an `ACK` request, confirming the
-direct communication. In SIP/3, the response by the invitee may contain a DIALOG_TOKEN frame.
-
-If a `contact:` header is present in the response header block and a DIALOG_TOKEN frame is present in the response,
-then a new SIP/3 connection SHOULD be established directly between the two user agents as described in the relevant
-`contact:` header fields exchanged.
-
-If a `contact:` header field is present in the header block but the response does not include a DIALOG_TOKEN frame,
-then the invitee wishes for a SIP/2.0 session to be established directly between the two user agents. The `contact:`
-header MUST indicate a secure `sips:` URI. A response that indicates a `contact:` header with an insecure `sip:` URI is
-{{malformed}}.
-
-> **Author's note:** What about upgrades from SIP/2.0 to SIP/3? Is it enough to assume that specificying a `sips:` URI
-in the SIP/2.0 `Contact:` header field, and then getting SIP/3 from ALPN when negotiating would be a valid upgrade
-path?
-
-The `ACK` method is prohibited in SIP/3. In the case where this SIP/3 session is acknowledging an offer/answer
-transaction on another SIP/3 connection, such as one that goes via one or more SIP/3 proxy servers, then the new
-connection is associated with that previous offser/answer transaction using the REDEEM_TOKEN frame.
+The `REGISTER`, `INVITE`, `ACK` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did
+in earlier versions of the protocol.
 
 The `CANCEL` method MUST NOT be used in SIP/3. If a request needs to be cancelled, the CANCEL frame SHOULD be used, or
 the stream for that request reset. Note that even after sending a CANCEL frame or the stream reset, data may still
