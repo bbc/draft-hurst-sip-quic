@@ -321,8 +321,6 @@ Each SIP transaction has exclusive use of a request stream. Only one request may
 agent server sends zero or more provisional responses on the same stream as the request, followed by one or more final
 responses. See {{Section 7.2 of SIP2.0}} for a description of provisional and final responses.
 
-SIP/3 does not use any unidirectional QUIC streams.
-
 On a given request stream, receipt of multiple requests MUST be treated as malformed.
 
 A SIP message (request or response) consists of:
@@ -563,9 +561,8 @@ representation of the stream IDs used.
 ## Dialogs
 
 In {{SIP2.0}}, dialogs are tracked by use of the `Call-ID:` header field and the `tag=` parameter on the `To:` and
-`From:` header fields. This document introduces a dialog token in {{methods}} which is used only to replace the `ACK`
-request sent after the `INVITE` request. This document does not introduce any additional means for tracking dialogs,
-and as such the `Call-ID:` and `tag=` values MUST be used in SIP/3.
+`From:` header fields. The current document does not introduce any additional means for tracking dialogs, and as such
+the `Call-ID:` and `tag=` values MUST continue to be used in SIP/3.
 
 # Stream Mapping and Usage {#stream-mapping}
 
@@ -1138,6 +1135,7 @@ The entries in {{fig-iana-parameter-table}} are registered by this document.
 
 |:----------------------------------|:-------|:---------------------|:----------|
 | Parameter Name                    | Value  | Specification        | Default   |
+|:----------------------------------|:-------|:---------------------|:----------|
 | SETTINGS_QPACK_MAX_TABLE_CAPACITY | `0x01` | {{defined-settings}} | 0         |
 | SETTINGS_MAX_FIELD_SECTION_SIZE   | `0x06` | {{defined-settings}} | Unlimited |
 | SETTINGS_QPACK_BLOCKED_STREAMS    | `0x07` | {{defined-settings}} | 0         |
