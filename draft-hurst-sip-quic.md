@@ -368,7 +368,7 @@ An endpoint MAY abruptly cancel any request by resetting both the sending and re
 sending a `RESET_STREAM` frame (see {{Section 19.4 of QUIC-TRANSPORT}}) and a `STOP_SENDING` frame (see
 {{Section 19.5 of QUIC-TRANSPORT}}).
 
-When the user agent server abruptly cancels a request without perfoming any application processing, the request is
+When the user agent server abruptly cancels a request without performing any application processing, the request is
 considered "rejected". The server SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. In this
 context, "processed" means that some data from the request stream was passed to some higher layer of software that
 might have taken some action as a result. The user agent client can treat requests rejected by the user agent server as
@@ -388,7 +388,7 @@ agent server has requested closure of the request stream with this error code.
 A malformed request or response is one that is an otherwise valid sequence of frames but is invalid due to:
 
 * the presence of prohibited header fields or pseudo-header fields,
-* the absense of mandatory pseudo-header fields,
+* the absence of mandatory pseudo-header fields,
 * invalid values for pseudo-header fields,
 * pseudo-header fields after header fields,
 * an invalid sequence of SIP messages, such as a message body being present before a header section,
@@ -435,7 +435,7 @@ the decoder. Use of the dynamic table can be disabled by setting this value to z
 the dynamic table, then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
-table entry that it has not yet received, because QUIC does not guarnatee order between data on different streams. In
+table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
 this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. As above, the HTTP/3 setting
 is replicated in SIP/3 in the form of the SETTINGS_QPACK_BLOCKED_STREAMS parameter sent by the decoder, which controls
 the number of streams that are allowed to be "blocked" by pending dynamic table updates. Blocked streams can be avoided
@@ -543,7 +543,7 @@ an unencrypted protocol, as this could constitute a downgrade attack. Instead, i
 contacted by a means other than via Proxy B, then Proxy A would return a response of `502 Bad Gateway` to the initiator
 for that transaction.
 
-When initiating direct communication with an invitee after the conclusion of the initial `INVITE`, the descision to use
+When initiating direct communication with an invitee after the conclusion of the initial `INVITE`, the decision to use
 SIP/3 SHOULD be performed as follows:
 
 * If the DNS SRV record for the SIPS URI indicates that the invitee supports SIPS over UDP, or
@@ -584,11 +584,11 @@ correlated with the request. These streams are referred to as request streams.
 features of SIP/2.0 are no longer required. For example, usage of the `ACK` method is prohibited by SIP/3 (see
 {{methods}}). In addition, user agents SHOULD NOT send the `CSeq` header field in requests and responses, as the
 messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions
-when forwarding message are responsibile for handing `ACK` requests and mapping of the `CSeq` header field to
+when forwarding message are responsible for handing `ACK` requests and mapping of the `CSeq` header field to
 individual transactions.
 
 > **Author's note:** The author invites feedback as to whether the SHOULD NOT in relation to the `CSeq` header should
-be increased to an outright prohibitation, or whether there is a valid use case that I have not identified that means
+be increased to an outright prohibition, or whether there is a valid use case that I have not identified that means
 this restriction should be relaxed.
 
 If the {{QPACK}} dynamic table is used, then the unidirectional encoder and decoder streams described in
@@ -608,7 +608,7 @@ All bidirectional streams are used for SIP requests and responses. These streams
 {{SIP2.0}} is designed to run over unreliable transports such as UDP. Use of the QUIC bidirectional stream guarantees
 reliability and ensures that the response can be readily correlated with the request. For this reason, agents
 SHOULD NOT send the `CSeq` header field in requests and responses, as the messages are already associated with a QUIC
-stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions when forwarding message are responsibile for
+stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions when forwarding message are responsible for
 handling the mapping of the `CSeq` header field to individual transactions.
 
 ## Unidirectional Streams {#unidirectional-streams}
@@ -729,7 +729,7 @@ A frame includes the following fields:
 * Frame Payload: A payload, the semantics of which are determined by the Type field.
 
 Each frame's payload MUST contain exactly the fields identified in its description. A frame payload that contains
-additional bytes after the identified fields of a frame payload that terminates before the end of the idenfitifed
+additional bytes after the identified fields of a frame payload that terminates before the end of the identified
 fields MUST be treated as a connection error of type SIP3_FRAME_ERROR.
 
 When a stream terminates cleanly, if the last frame on the stream was truncated, this MUST be treated as a connection
@@ -739,7 +739,7 @@ error of type SIP3_FRAME_ERROR. Streams that terminate abruptly may be reset at 
 
 ### DATA {#data-frame}
 
-`DATA` frames (type=`0x00`) convey arbitrary, variable-length sequences of bytes aassociated with the SIP request or
+`DATA` frames (type=`0x00`) convey arbitrary, variable-length sequences of bytes associated with the SIP request or
 response content.
 
 `DATA` frames MUST be associated with a SIP request or response.
@@ -867,7 +867,7 @@ use a more specific error code.
   {: anchor="SIP3_GENERAL_PROTOCOL_ERROR"}
 
 SIP3_INTERNAL_ERROR (0x0302):
-: An internal error has occured in the SIP stack.
+: An internal error has occurred in the SIP stack.
   {: anchor="SIP3_INTERNAL_ERROR"}
 
 SIP3_STREAM_CREATION_ERROR (0x0303):
@@ -915,7 +915,7 @@ SIP3_MESSAGE_ERROR (0x030e):
   {: anchor="SIP3_MESSAGE_ERROR"}
 
 SIP3_HEADER_COMPRESSION_FAILED (0x0310):
-: The QPACK decoder failed to interperet an encoded field section and is not able to continue decoding that field
+: The QPACK decoder failed to interpret an encoded field section and is not able to continue decoding that field
 section
   {: anchor="SIP3_HEADER_COMPRESSION_FAILED"}
 
@@ -962,7 +962,7 @@ unknown frame type does not satisfy that requirement and SHOULD be treated as an
 
 Extensions that could change the semantics of existing protocol components MUST be negotiated before being used. For
 example, an extension that allows the multiplexing of other protocols such as media transport protocols over
-bidirectional QUIC streams MUST NOT be used until the peer has given a positive signal that this is acceptible.
+bidirectional QUIC streams MUST NOT be used until the peer has given a positive signal that this is acceptable.
 
 This document does not mandate a specific method for negotiating the use of any extension, but it notes that a
 parameter ({{defined-settings}}) could be used for that purpose. If both peers set a value that indicates willingness
@@ -1009,7 +1009,7 @@ the encoding parameters of media that is being exchanged. RUSH has two modes of 
 modes. Normal mode, as described in {{Section 4.3.1 of RUSH}}, uses a single bidirectional QUIC stream to send and
 receive media streams. Multi Stream mode, as described in {{Section 4.3.2 of RUSH}}, uses a bidirectional QUIC
 stream for each individual frame. Bidirectional streams appear to be used in order to give error feedback, as opposed
-to having a seperate control stream for handling errors or using the QUIC transport error mechanism. If the stream type
+to having a separate control stream for handling errors or using the QUIC transport error mechanism. If the stream type
 mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then SIP/3 could
 be used with RUSH.
 
@@ -1017,7 +1017,7 @@ be used with RUSH.
 best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
 SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used. Warp uses
 unidirectional streams for sending media. Media is sent in ISO-BMFF "segments", similar to MPEG-DASH, with each stream
-carrying a single segment. This can easily be used with the resered media stream type reserved in
+carrying a single segment. This can easily be used with the reserved media stream type reserved in
 {{unidirectional-streams}}.
 
 {{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
@@ -1106,7 +1106,7 @@ the frame that are conditionally present.
 The entries in {{fig-iana-frame-table}} are registered by this document.
 
 |:-----------|:-------|:-------------------|
-| Frame Type | Value  | Sepcification      |
+| Frame Type | Value  | Specification      |
 |:-----------|:-------|:-------------------|
 | DATA       | `0x00` | {{data-frame}}     |
 | HEADERS    | `0x01` | {{headers-frame}}  |
@@ -1129,7 +1129,7 @@ Parameter Name:
 : A symbolic name for the parameter. Specifying a parameter name is optional.
 
 Default:
-: The value of the parameter nless otherwise indicated. A default SHOULD be the most restrictive possible value.
+: The value of the parameter unless otherwise indicated. A default SHOULD be the most restrictive possible value.
 
 The entries in {{fig-iana-parameter-table}} are registered by this document.
 
@@ -1166,7 +1166,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
 |:-------------------------------|:---------|:-------------------------------------------------|:----------------|
 | SIP3_NO_ERROR                  | `0x0300` | No error.                                        | {{error-codes}} |
 | SIP3_GENERAL_PROTOCOL_ERROR    | `0x0301` | Non-specific error code.                         | {{error-codes}} |
-| SIP3_INTERNAL_ERROR            | `0x0302` | An internal error occured.                       | {{error-codes}} |
+| SIP3_INTERNAL_ERROR            | `0x0302` | An internal error occurred.                      | {{error-codes}} |
 | SIP3_STREAM_CREATION_ERROR     | `0x0303` | Peer created an unacceptable stream.             | {{error-codes}} |
 | SIP3_CLOSED_CRITICAL_STREAM    | `0x0304` | A required stream was closed.                    | {{error-codes}} |
 | SIP3_FRAME_ERROR               | `0x0305` | An invalid frame was received.                   | {{error-codes}} |
@@ -1268,7 +1268,7 @@ TODO acknowledge.
 | 45    | call-info           |                 |
 | 46    | content-encoding    |                 |
 | 47    | content-language    |                 |
-| 48    | cate                |                 |
+| 48    | date                |                 |
 | 49    | error-info          |                 |
 | 50    | expires             |                 |
 | 51    | in-reply-to         |                 |
