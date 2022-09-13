@@ -37,7 +37,6 @@ normative:
 informative:
   RFC8499: # DNS Terminology
   HTTP1.1: RFC9112
-  HTTP2: RFC9113
   QUIC-DATAGRAMS: RFC9221
   QRT:
     title: "QRT: QUIC RTP Tunnelling"
@@ -429,10 +428,10 @@ response.
 streams. The values of the types are identical when used with SIP/3, see {{unidirectional-streams}}.
 
 To bound the memory requirements of the decoder for the QPACK dynamic table, the decoder limits the maximum value the
-encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. Similarly to
-HTTP/3, the dynamic table capacity is determined by the value of the SETTINGS_QPACK_MAX_TABLE_CAPACITY parameter sent
-by the decoder. Use of the dynamic table can be disabled by setting this value to zero. If both endpoints disable use
-of the dynamic table, then the endpoints SHOULD NOT open the encoder and decoder streams.
+encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. The dynamic
+table capacity is determined by the value of the SETTINGS_QPACK_MAX_TABLE_CAPACITY parameter sent by the decoder. Use
+of the dynamic table can be disabled by setting this value to zero. If both endpoints disable use of the dynamic table,
+then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
 table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
@@ -474,9 +473,9 @@ Contact: "Mr. Watson" <sip:watson@example.com>;
 
 ### SIP Control Data
 
-Similar to {{HTTP2}} and {{HTTP3}}, SIP/3 employs a series of pseudo-header fields where the field name begins with
-the `:` character (ASCII 0x3a). These pseudo-header fields convey message control data, which replaces the
-`Request-Line` described in {{Section 7.1 of SIP2.0}}.
+SIP/3 employs a series of pseudo-header fields where the field name begins with the `:` character (ASCII 0x3a). These
+pseudo-header fields convey message control data, which replaces the `Request-Line` described in
+{{Section 7.1 of SIP2.0}}.
 
 Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
 defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
@@ -604,7 +603,7 @@ All bidirectional streams are used for SIP requests and responses. These streams
 
 SIP/3 makes use of unidirectional streams. The purpose of a given unidirectional stream is indicated by a stream type,
 which is sent as a variable-length integer at the start of the stream. The format and structure of data that follows
-this integer is determined by the stream type, as it is in {{HTTP3}}.
+this integer is determined by the stream type.
 
 ~~~
 Unidirectional Stream Header {
