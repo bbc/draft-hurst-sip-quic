@@ -444,10 +444,10 @@ treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
 
 The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
 
-SIP/3 does not use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}) because the correct order of requests can
-be inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and forward
-SIP/3 messages as earlier versions of SIP are responsible for defining the value carried in the `CSeq` header field for
-those messages, and the mapping of those values back to the requisite SIP/3 request stream.
+SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of requests
+are instead inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and
+forward SIP/3 messages as earlier versions of SIP are responsible for defining the value carried in the `CSeq` header
+field for those messages, and the mapping of those values back to the requisite SIP/3 request stream.
 
 ### Contact Header Field Version Extension {#contact-extension}
 
@@ -581,15 +581,14 @@ exclusively for all SIP requests and responses. A bidirectional stream ensures t
 correlated with the request. These streams are referred to as request streams.
 
 {{SIP2.0}} is designed to run over unreliable transports such as UDP. As QUIC guarantees reliability, some of the
-features of SIP/2.0 are no longer required. For example, usage of the `ACK` method is prohibited by SIP/3 (see
-{{methods}}). In addition, user agents SHOULD NOT send the `CSeq` header field in requests and responses, as the
-messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions
-when forwarding message are responsible for handing `ACK` requests and mapping of the `CSeq` header field to
+features of SIP/2.0 are no longer required. User agents MUST NOT send the `CSeq` header field in requests or
+responses, as the messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and
+earlier versions when forwarding message are responsible for handing the mapping of the `CSeq` header field to
 individual transactions.
 
-> **Author's note:** The author invites feedback as to whether the SHOULD NOT in relation to the `CSeq` header should
-be increased to an outright prohibition, or whether there is a valid use case that I have not identified that means
-this restriction should be relaxed.
+> **Author's note:** The author invites feedback as to whether the MUST NOT in relation to the `CSeq` header could be
+relaxed to a SHOULD NOT, or whether there is a valid use case that I have not identified that means this restriction
+should be relaxed even further.
 
 If the {{QPACK}} dynamic table is used, then the unidirectional encoder and decoder streams described in
 {{Section 4.2 of QPACK}} will be in operation in a SIP/3 connection.
@@ -604,12 +603,6 @@ If the {{QPACK}} dynamic table is used, then the unidirectional encoder and deco
 ## Bidirectional Streams {#bidirectional-streams}
 
 All bidirectional streams are used for SIP requests and responses. These streams are referred to as request streams.
-
-{{SIP2.0}} is designed to run over unreliable transports such as UDP. Use of the QUIC bidirectional stream guarantees
-reliability and ensures that the response can be readily correlated with the request. For this reason, agents
-SHOULD NOT send the `CSeq` header field in requests and responses, as the messages are already associated with a QUIC
-stream. Intermediaries that convert SIP/3 to SIP/2.0 and earlier versions when forwarding message are responsible for
-handling the mapping of the `CSeq` header field to individual transactions.
 
 ## Unidirectional Streams {#unidirectional-streams}
 
