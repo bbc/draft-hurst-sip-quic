@@ -19,4 +19,4 @@ for more information.
 
 ## Contributing
 
-See the [guidelines for contributions](CONTRIBUTING.md).
+See the [guidelines for contributions](CONTRIBUTIONS.md).
