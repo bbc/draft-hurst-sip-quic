@@ -304,7 +304,7 @@ with each dialog individually identified by the `Call-ID` header and `tag=` para
 
 ## QUIC Clients and Servers {#quic-clients-servers}
 
-As the intention with SIP/3 is to reuse the transport association as much as possible, this is not entirely compatible
+Since the intention of SIP/3 is to reuse the transport association as much as possible, this is not entirely compatible
 with conventional SIP's user agent client and user agent server model. Instead, this specification introduces two new
 terms, "transport client" and "transport server", to denote the QUIC client as the initiator of the transport
 connection, and the QUIC server as its peer.
@@ -571,16 +571,12 @@ delivery with regard to bytes on other streams. The semantics of the QUIC stream
 layer. The transport layer buffers and orders received stream data, exposing a reliable byte stream to the application.
 Although QUIC permits out-of-order delivery within a stream, SIP/3 does not make use of this feature.
 
-{::comment}
-HTTP/3 uses unidirectional streams to carry the SETTINGS frame - should there be an analog of that here?
-{:/comment}
-
 QUIC streams can be either unidirectional, carrying data only from initiator to receiver, or bidirectional, carrying
 data in both directions. Bidirectional streams are used exclusively to convey SIP/3 request and response messages;
 unidirectional streams are used only for controlling the SIP/3 session itself. A bidirectional stream ensures that the
 response can be readily correlated with the request. These streams are referred to as request streams.
 
-{{SIP2.0}} is designed to run over unreliable transports such as UDP. As QUIC guarantees reliability, some of the
+{{SIP2.0}} is designed to run over unreliable transports such as UDP. Since QUIC guarantees reliability, some of the
 features of SIP/2.0 are no longer required. User agents MUST NOT send the `CSeq` header field in requests or
 responses, as the messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and
 earlier versions when forwarding message are responsible for handing the mapping of the `CSeq` header field to
@@ -639,8 +635,8 @@ If the stream header indicates a stream type that is not supported by the recipi
 the stream, discard incoming data without further processing, and reset the stream with the SIP3_STREAM_CREATION_ERROR
 error code. The recipient MUST NOT consider unknown stream types to be a connection error of any kind.
 
-As certain stream types can affect connection state, a recipient SHOULD NOT discard data from incoming unidirectional
-streams prior to reading the stream type.
+Since certain stream types can affect connection state, a recipient SHOULD NOT discard data from incoming
+unidirectional streams prior to reading the stream type.
 
 Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer supports
 before sending streams of that type. Implementations MAY send stream types that do not modify the state or semantics of
