@@ -960,6 +960,11 @@ defined in such a way that the extension is disabled if the setting is omitted.
 
 # Future Carriage of Media Sessions {#media-sessions}
 
+> **Author's Note:** This section is intended to foster discussion around how the QUIC transport connection established
+and used by SIP/3 could be also used for carriage of media.
+
+> **RFC Editor's Note:** Please remove this section prior to publication of a final version of this document.
+
 Future versions of this specification may include support for carrying media sessions within the same QUIC transport
 connection as SIP/3, with the intention being that they will be negotiated using the SDP offer/answer mechanism.
 
