@@ -1211,6 +1211,11 @@ TODO acknowledge.
 
 # QPACK Static Table {#static-table}
 
+> **Author's Note:** This is only a preliminary table. The original HPACK static table was created after analysing the
+frequency of common HTTP header fields and their values, and QPACK repeated that effort and resulted in a different
+static table. The author welcomes any data that would permit a similar level of analysis for the frequency of common
+SIP header fields and their values.
+
 | Index | Name                | Value           |
 |:------|:--------------------|:----------------|
 | 0     | :request-uri        |                 |
