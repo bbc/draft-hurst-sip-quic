@@ -160,7 +160,7 @@ informative:
 --- abstract
 
 This document describes a mapping of Session Initiation Protocol (SIP) semantics over QUIC Transport. It allows the
-creation, modification and temination of meida sesions with one or more participants, possibly carried over the same
+creation, modification and termination of media sessions with one or more participants, possibly carried over the same
 QUIC transport connection, using RTP/AVP directly, or some mixture of both.
 
 SIP version 3 (SIP/3) enables a more efficient use of network resources by introducing field compression to the header
@@ -430,9 +430,9 @@ streams. The values of the types are identical when used with SIP/3, see {{unidi
 
 To bound the memory requirements of the decoder for the QPACK dynamic table, the decoder limits the maximum value the
 encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. Similarly to
-HTTP/3, the dynamic table capacity is determined by the value of the SETTINGS_QPACK_MAX_TABLE_CAPACTY parameter sent by
-the decoder. Use of the dynamic table can be disabled by setting this value to zero. If both endpoints disable use of
-the dynamic table, then the endpoints SHOULD NOT open the encoder and decoder streams.
+HTTP/3, the dynamic table capacity is determined by the value of the SETTINGS_QPACK_MAX_TABLE_CAPACITY parameter sent
+by the decoder. Use of the dynamic table can be disabled by setting this value to zero. If both endpoints disable use
+of the dynamic table, then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
 table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
@@ -481,7 +481,7 @@ the `:` character (ASCII 0x3a). These pseudo-header fields convey message contro
 Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
 defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
 
-Pseudo-header fields are only valud in the context in which they are defined. Pseudo-header fields defined for requests
+Pseudo-header fields are only valid in the context in which they are defined. Pseudo-header fields defined for requests
 MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
 fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
 invalid pseudo-header fields as malformed.
@@ -508,7 +508,7 @@ is malformed.
 
 #### Response Pseudo-header fields
 
-For responses, a single ":status" psuedo-header field is defined that carries the SIP status code, see
+For responses, a single ":status" pseudo-header field is defined that carries the SIP status code, see
 {{Section 7.2 of SIP2.0}}.
 
 All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
@@ -518,7 +518,7 @@ implicitly have a protocol version of "3.0". If it is required, for example to p
 received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
 listed in {{Section 21 of SIP2.0}}.
 
-# Compatibility With Earlier SIP Versions {#compatiblity}
+# Compatibility With Earlier SIP Versions {#compatibility}
 
 ~~~
 +-----------+       +-------+         +-------+         +---------+
@@ -1051,7 +1051,7 @@ The "sips/2.0" string identifies SIP/2.0 over TLS:
   Specification:
   : {{SIP2.0}}
 
-This document creates a new registration of SIP/2.0 over UDP in the "TLS Application-Layer Protocol Negotation (ALPN)
+This document creates a new registration of SIP/2.0 over UDP in the "TLS Application-Layer Protocol Negotiation (ALPN)
 Protocol IDs" registry established in {{?RFC7301}}.
 
 The "sip/2.0" string identifies SIP/2.0 over UDP:
