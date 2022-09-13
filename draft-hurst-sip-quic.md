@@ -576,9 +576,9 @@ HTTP/3 uses unidirectional streams to carry the SETTINGS frame - should there be
 {:/comment}
 
 QUIC streams can be either unidirectional, carrying data only from initiator to receiver, or bidirectional, carrying
-data in both directions. SIP/3 makes no direct use of unidirectional streams, and bidirectional streams are used
-exclusively for all SIP requests and responses. A bidirectional stream ensures that the response can be readily
-correlated with the request. These streams are referred to as request streams.
+data in both directions. Bidirectional streams are used exclusively to convey SIP/3 request and response messages;
+unidirectional streams are used only for controlling the SIP/3 session itself. A bidirectional stream ensures that the
+response can be readily correlated with the request. These streams are referred to as request streams.
 
 {{SIP2.0}} is designed to run over unreliable transports such as UDP. As QUIC guarantees reliability, some of the
 features of SIP/2.0 are no longer required. User agents MUST NOT send the `CSeq` header field in requests or
