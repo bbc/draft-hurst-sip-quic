@@ -356,31 +356,36 @@ entire request. Is this something to consider banning here too?
 
 ### Request Cancellation and Rejection {#cancel-request}
 
-Once a request stream has been opened, the request MAY be cancelled by either endpoint. A user agent client SHOULD
-gracefully cancel a request by using the CANCEL frame. A user agent server receiving a `CANCEL` request (not frame)
-MUST respond to the request immediately with a 405 Method Not Allowed error as described in
-{{Section 21.4.6 of SIP2.0}}.
+Once a request stream has been opened, the request MAY be cancelled by either endpoint for the reasons given in
+{{Section 9 of SIP2.0}}. Cancellations are categorised as either graceful or abrupt. An endpoint MAY abruptly cancel
+any request by resetting the stream using a `RESET_STREAM` frame and aborting the reception of further data on that
+stream using a `STOP_SENDING` frame as described in {{Section 2.4 of QUIC-TRANSPORT}}.
 
-> **Author's Note:** This is because the `CSeq` header has been removed, so we can't use the `CANCEL` request.
+The user agent client SHOULD gracefully cancel requests if the response is no longer of interest by using the CANCEL
+frame. For example, where a user agent client is attempting to reach a user at multiple endpoints, and has already
+received a final response from one endpoint that it is satisfied with.
 
-An endpoint MAY abruptly cancel any request by resetting both the sending and receiving parts of the streams by
-sending a `RESET_STREAM` frame (see {{Section 19.4 of QUIC-TRANSPORT}}) and a `STOP_SENDING` frame (see
-{{Section 19.5 of QUIC-TRANSPORT}}).
-
-When the user agent server abruptly cancels a request without performing any application processing, the request is
-considered "rejected". The server SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. In this
-context, "processed" means that some data from the request stream was passed to some higher layer of software that
-might have taken some action as a result. The user agent client can treat requests rejected by the user agent server as
-though they had never been sent at all, and may be retried later.
-
-User agent servers MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were partially or fully
-processed. When a server abandons a response after partial processing, it SHOULD abort its response stream with
-the error code SIP3_REQUEST_CANCELLED.
-
-User agent clients SHOULD use the error code SIP3_REQUEST_CANCELLED to cancel requests. Upon receipt of this error
-code, user agent servers MAY abruptly terminate the response using the error code SIP3_REQUEST_REJECTED if no
+User agent clients MAY use the error code SIP3_REQUEST_CANCELLED to abruptly cancel requests. Upon receipt of this
+error code, user agent servers MAY abruptly terminate the response using the error code SIP3_REQUEST_REJECTED if no
 processing was performed. User agent clients MUST NOT use the SIP3_REQUEST_REJECTED error code, except when a user
 agent server has requested closure of the request stream with this error code.
+
+A user agent server receiving a `CANCEL` request (not frame) MUST respond to the request immediately with a 405 Method
+Not Allowed error as described in Section 21.4.6 of [SIP2.0]. A user agent server receiving a CANCEL frame for a stream
+that has not been opened MUST be treated as a connection error of type SIP3_CANCEL_FRAME_CLOSED.
+
+> **Author's Note:** This is because the `CSeq` header has been removed, so the `CANCEL` request method cannot be used.
+
+The user agent server cancels requests if they are unable or choose not to respond. User agent server cancellations are
+always abrupt cancellations. When the user agent server abruptly cancels a request without performing any application
+processing, the request is considered "rejected". The user agent server SHOULD abort its response stream with the error
+code SIP3_REQUEST_REJECTED. In this context, "processed" means that some data from the request stream was passed to
+some higher layer of software that might have taken some action as a result. The user agent client can treat requests
+rejected by the user agent server as though they had never been sent at all, and may be retried later.
+
+User agent servers MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were partially or fully
+processed. When a server abandons a response after partial processing, it SHOULD abort its response stream with the
+error code SIP3_REQUEST_CANCELLED.
 
 ### Malformed requests and responses {#malformed}
 
