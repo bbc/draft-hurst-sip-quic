@@ -840,6 +840,24 @@ SETTINGS_QPACK_BLOCKED_STREAMS (`0x07`):
 
 # Error Handling {#error-handling}
 
+When a request cannot be completed successfully, or if there is an issue with the underlying QUIC stream, QUIC allows
+the application protocol to abruptly reset that stream and communicate a reason (see {{Section 2.4 of QUIC-TRANSPORT}}.
+This is referred to as a "stream error". A SIP/3 implementation can decide to close a QUIC stream and communicate the
+type of error. Wire encoding of error codes are defined in {{error-codes}}. Stream errors are distinct from SIP status
+codes that indicate error conditions. Stream errors indicate that the sender did not transfer or consume the full
+request or response, while SIP status codes indicate the result of a request that was successfully received.
+
+If an entire connection needs to be terminated, QUIC similarly provides mechanisms to communicate a reason (see
+{{Section 5.3 of QUIC-TRANSPORT}}). This is referred to as a "connection error". Similar to stream errors, a SIP/3
+implementation can terminate a QUIC connection and communicate the reason using an error code from {{error-codes}}.
+
+Although called a "stream error", this does not necessarily indicate a problem with either the implementation or the
+connection as a whole. Streams MAY also be reset if the result of a SIP response is no longer of interest to the user
+agent client, see {{cancel-request}}.
+
+{{extensions}} specifies that extensions may defined new error codes without negotiation. Use of an unknown error code
+or a known error code in an unexpected context MUST be treated as equivalent of SIP3_NO_ERROR.
+
 *[stream error]: #error-handling
 *[stream errors]: #error-handling (((stream error)))
 *[connection error]: #error-handling
