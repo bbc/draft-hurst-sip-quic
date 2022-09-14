@@ -169,13 +169,15 @@ fields carried in SIP transactions.
 
 # Introduction {#introduction}
 
-The Session Initiation Protocol (SIP) {{!RFC3261}} is widely used for managing media sessions over the internet.
-Examples of these media sessions include internet telephony services, video conferencing and live streaming of media.
+The Session Initiation Protocol (SIP) {{!RFC3261}} is widely used for managing media sessions over the Internet.
+Examples of these media sessions include Internet telephony services, video conferencing and live streaming of media.
 
 {{SIP2.0}} uses whitespace-delimited text fields to convey SIP messages in a similar format to HTTP/1.1 {{HTTP1.1}},
-and may optionally be transported over TLS (so called "SIPS"). SIP/3, as defined by this document, uses a binary
+and may optionally be transported over TLS (so-called "SIPS"). SIP/3, as defined by this document, uses a binary
 framing layer carried over QUIC streams and is protected by the mandatory TLS encryption afforded by the QUIC
-transport connection. A future optional extension may introduce the ability to carry SIP messages in QUIC Datagrams
+transport connection.
+
+> **Author's Note:** A future optional extension may introduce the ability to carry SIP messages in QUIC Datagrams
 {{QUIC-DATAGRAMS}}.
 
 ## Conventions {#conventions}
@@ -243,33 +245,30 @@ The terms "call", "dialog", "header", "header field", "header field value", "ini
 
 # SIP/3 Protocol Overview {#sip3-overview}
 
-SIP/3 provides a transport for SIP semantics using the QUIC transport protocol and an internal framing layer based on
-{{HTTP3}}.
+SIP/3 provides a transport for SIP semantics using the QUIC transport protocol and an internal framing layer inspired
+by {{HTTP3}}.
 
 Once a user agent client knows that a user agent server supports SIP/3, it opens a QUIC connection. QUIC provides
-protocol negotiation, stream-based multiplexing, and flow control. SIP transactions are multiplexed across QUIC
-streams, which is described in {{Section 2 of QUIC-TRANSPORT}}. Each request and response consumes a single QUIC
-stream.
+protocol negotiation, stream-based multiplexing, and flow control services to the SIP/3 transaction layer above. SIP
+transactions are multiplexed across QUIC streams as described in {{Section 2 of QUIC-TRANSPORT}}. Each request and
+response message pair in a SIP/3 transaction consumes a single QUIC stream.
 
-Within each stream, the basic unit of SIP/3 communication is a frame as described in {{framing-layer}}. Each frame type
-serves a different purpose. The HEADERS and DATA frames form the basis of the offer/answer transaction model described
-in {{RFC3264}} and are described in {{sip-transaction-framing}}.
+Within each QUIC stream, the basic unit of SIP/3 communication is a frame as described in {{framing-layer}}. Each frame
+type serves a different purpose. The HEADERS and DATA frames form the basis of the offer/answer transaction model
+described in {{RFC3264}} and are described in {{sip-transaction-framing}}.
 
 In {{SIP2.0}}, some header fields may be compressed by using abbreviated versions. In SIP/3, all request and response
 header fields are compressed for transmission using {{QPACK}}, in which header fields may be mapped to indexed values,
-or literal values may be encoded using a static Huffman code. {{QPACK}} uses two tables for its indexed values; the
-static table is predefined with common header fields and values, and the dynamic table can be used to encode frequently
-used header fields to reduce repetition. Because {{QPACK}}'s static table is designed to work with {{HTTP3}}, this
-specification replaces the default static table defined in {{Appendix A of QPACK}} with the table in
-{{static-table}}.
+or literal values may be encoded using a codepoint in a Huffman table. {{QPACK}} uses two tables for its indexed values:
+the static table is predefined with common SIP header fields and values, and the dynamic table can be used to encode
+frequently used header fields in a SIP/3 connection to reduce repetition. Because {{QPACK}}'s static table is designed
+to work with {{HTTP3}}, this specification replaces the default static table defined in {{Appendix A of QPACK}} with
+the one in {{static-table}}.
 
 ## QUIC Transport {#quic-transport}
 
 SIP/3 relies on QUIC version 1 as the underlying transport. The use of other QUIC transport versions with SIP/3 MAY be
-defined by future specifications. QUIC version 1 uses TLS version 1.3 or greater as its handshake protocol. SIP/3 user
-agents MUST support a mechanism to indicate the target host to the server during the TLS handshake. If the target
-destination user agent server is identified by a domain name {{?RFC8499}}, clients MUST send the Server Name Indication
-({{?SNI=RFC6066}}) TLS extension unless an alternative mechanism to indicate the target host is used.
+defined by future specifications.
 
 QUIC connections are established as described in {{!RFC9000}}. During connection establishment, SIP/3 support is
 indicated by selecting the ALPN token "sips/3" in the TLS handshake. Support for other application-layer protocols MAY
@@ -277,6 +276,11 @@ be offered in the same handshake.
 
 > **Author's Note:** Perhaps the ALPN string should actually be "s3" instead of "sips/3", similar to h3 vs. HTTP/3?
 Should probably mint the ALPN token "sips/2.0" as well, for backwards compatibility?
+
+QUIC version 1 uses TLS version 1.3 or greater as its handshake protocol. SIP/3 user agents MUST support a mechanism to
+indicate the target host to the server during the TLS handshake. If the target destination user agent server is
+identified by a domain name {{?RFC8499}}, clients MUST send the Server Name Indication ({{?SNI=RFC6066}}) TLS extension
+unless an alternative mechanism to indicate the target host is used.
 
 ### Draft Version Identification {#draft-version-indication}
 
@@ -295,43 +299,43 @@ coordinate their experiments.
 
 ## Connection Reuse {#connection-reuse}
 
-SIP/3 connections are persistent across multiple transactions. SIP/3 connections may also be persistent across multiple
-established dialogs. A single SIP/3 connection may carry transactions for multiple distinct dialogs simultaneously,
-with each dialog individually identified by the `Call-ID` header and `tag=` parameters on the `To` and `From` headers.
+SIP/3 connections are persistent across multiple request-response transactions. A SIP/3 connection MAY also be shared by
+multiple concurrent dialogs, with each dialog individually identified by the `Call-ID` header and `tag=` parameters on
+the `To` and `From` headers.
 
 # Expressing SIP Semantics in SIP/3 {#sip3-semantics}
 
 ## QUIC Clients and Servers {#quic-clients-servers}
 
-Since the intention of SIP/3 is to reuse the transport association as much as possible, this is not entirely compatible
-with conventional SIP's user agent client and user agent server model. Instead, this specification introduces two new
-terms, "transport client" and "transport server", to denote the QUIC client as the initiator of the transport
-connection, and the QUIC server as its peer.
+This specification introduces two new terms: "transport client" to denote the host that initiates the QUIC transport
+connection for exchanging SIP/3 messages, and "transport server" as its peer. These terms are orthogonal to SIP's
+concepts of user agent client (UAC) and user agent server (UAS): transport clients and servers may take on either
+role in the SIP/3 connection.
 
 ## SIP Transaction Framing {#sip-transaction-framing}
 
-SIP transactions begin with a request being sent by a user agent client (UAC) on a request stream, which is a
-bidirectional QUIC stream; see {{stream-mapping}}. If the user agent client making the request is accessing the
-transport connection from the transport client endpoint, then the request stream is carried on a client-initiated
-bidirectional QUIC stream. If the user agent client making the request is accessing the transport connection from the
-transport server endpoint, then the request stream is carried on a server-initiated bidirectional QUIC stream.
+SIP/3 transactions begin with a request message sent by a UAC on a request stream, which is a bidirectional QUIC
+stream; see {{stream-mapping}}. If the user agent client making the request is accessing the transport connection from
+the transport client endpoint, then the request stream is carried on a client-initiated bidirectional QUIC stream. If
+the user agent client making the request is accessing the transport connection from the transport server endpoint,
+then the request stream is carried on a server-initiated bidirectional QUIC stream.
 
-Each SIP transaction has exclusive use of a request stream. Only one request may be made per request stream. The user
-agent server sends zero or more provisional responses on the same stream as the request, followed by one or more final
-responses. See {{Section 7.2 of SIP2.0}} for a description of provisional and final responses.
+Each SIP/3 transaction has exclusive use of a request stream. Only one request is made per request stream. The UAS
+sends zero or more provisional responses on the same stream as the request, followed by one or more final responses.
+See {{Section 7.2 of SIP2.0}} for a description of provisional and final responses.
 
 On a given request stream, receipt of multiple requests MUST be treated as malformed.
 
 A SIP message (request or response) consists of:
 
-1. the header section, including message control data, sent as a single HEADERS frame,
-2. optionally, the message body, if present, sent as a series of DATA frames.
+1. the header section, including message control data, sent in SIP/3 as a single `HEADERS` frame,
+2. optionally, the message body, if present, sent in SIP/3 as a series of `DATA` frames.
 
 Headers are described in {{Section 7.3 of SIP2.0}}. Message bodies are described in {{Section 7.4 of SIP2.0}}.
 
 Receipt of an invalid sequence of frames MUST be treated as a connection error of type SIP3_FRAME_UNEXPECTED. In
-particular, a DATA frame before any HEADERS frame is considered invalid. Other frame types, especially unknown frame
-types, may be permitted subject to their own rules, see {{extensions}}.
+particular, a DATA frame received before any HEADERS frame is considered invalid. Other frame types, especially unknown
+frame types, MAY be permitted, subject to their own rules, see {{extensions}}.
 
 The HEADERS frame might reference updates to the QPACK dynamic table. While these updates are not directly part of the
 message exchange, they MUST be received and processed before the message can be consumed.
@@ -341,12 +345,12 @@ The HTTP/3 spec has something about Transfer-Encoding here - SIP/2.0 has the Con
 this be also banned here?
 {:/comment}
 
-After sending a request, the client MUST close the stream for sending (see {{Section 3.4 of QUIC-TRANSPORT}}). After
-sending the last final response, the server MUST close the stream for sending. At this point, the QUIC stream is fully
+After sending a request, the UAC MUST close the stream for sending (see {{Section 3.4 of QUIC-TRANSPORT}}). After
+sending the last final response, the UAS MUST close the stream for sending. At this point, the QUIC stream is fully
 closed.
 
-When a stream is closed, this indicates the completion of the SIP transaction. If a stream terminates without enough of
-the request to provide a complete response, the server SHOULD abort the stream with the error code
+When a stream is closed, this indicates the completion of the SIP/3 transaction. If a stream terminates without enough
+of the request to provide a complete response, the UAS SHOULD abort the stream with the error code
 SIP3_REQUEST_INCOMPLETE.
 
 {::comment}
@@ -361,31 +365,31 @@ Once a request stream has been opened, the request MAY be cancelled by either en
 any request by resetting the stream using a `RESET_STREAM` frame and aborting the reception of further data on that
 stream using a `STOP_SENDING` frame as described in {{Section 2.4 of QUIC-TRANSPORT}}.
 
-The user agent client SHOULD gracefully cancel requests if the response is no longer of interest by using the CANCEL
-frame. For example, where a user agent client is attempting to reach a user at multiple endpoints, and has already
-received a final response from one endpoint that it is satisfied with.
+The UAC SHOULD gracefully cancel requests if the response is no longer of interest by using the `CANCEL` frame. For
+example, where a UAC is attempting to reach a user at multiple endpoints, and has already received a final response
+from one endpoint that it is satisfied with.
 
-User agent clients MAY use the error code SIP3_REQUEST_CANCELLED to abruptly cancel requests. Upon receipt of this
-error code, user agent servers MAY abruptly terminate the response using the error code SIP3_REQUEST_REJECTED if no
-processing was performed. User agent clients MUST NOT use the SIP3_REQUEST_REJECTED error code, except when a user
-agent server has requested closure of the request stream with this error code.
+UACs MAY use the error code SIP3_REQUEST_CANCELLED to abruptly cancel requests. Upon receipt of this error code, a
+UAS MAY abruptly terminate the response using the error code SIP3_REQUEST_REJECTED if no processing was performed.
+A UAC MUST NOT use the SIP3_REQUEST_REJECTED error code, except when the corresponding UAS has requested closure of the
+request stream with this error code.
 
-A user agent server receiving a `CANCEL` request (not frame) MUST respond to the request immediately with a 405 Method
-Not Allowed error as described in Section 21.4.6 of [SIP2.0]. A user agent server receiving a CANCEL frame for a stream
-that has not been opened MUST be treated as a connection error of type SIP3_CANCEL_FRAME_CLOSED.
+A UAS receiving a `CANCEL` request (not frame) MUST respond to the request immediately with a 405 Method Not Allowed
+error as described in Section 21.4.6 of [SIP2.0]. A user agent server receiving a `CANCEL` frame for a stream that has
+not been opened MUST be treated as a connection error of type SIP3_CANCEL_FRAME_CLOSED.
 
 > **Author's Note:** This is because the `CSeq` header has been removed, so the `CANCEL` request method cannot be used.
 
-The user agent server cancels requests if they are unable or choose not to respond. User agent server cancellations are
-always abrupt cancellations. When the user agent server abruptly cancels a request without performing any application
-processing, the request is considered "rejected". The user agent server SHOULD abort its response stream with the error
-code SIP3_REQUEST_REJECTED. In this context, "processed" means that some data from the request stream was passed to
-some higher layer of software that might have taken some action as a result. The user agent client can treat requests
-rejected by the user agent server as though they had never been sent at all, and may be retried later.
+The UAS cancels requests if they are unable or choose not to respond. UAS cancellations are always abrupt cancellations.
+When a UAS abruptly cancels a request without performing any application processing, the request is considered "rejected".
+In this caser, the UAS SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. (In this context,
+"processed" means that some data from the request stream was passed to some higher layer of software that might have taken
+some action as a result.) The UAC MAY treat a request rejected by the UAS as though it had never been sent at all, and may
+retry the request later.
 
-User agent servers MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were partially or fully
-processed. When a server abandons a response after partial processing, it SHOULD abort its response stream with the
-error code SIP3_REQUEST_CANCELLED.
+A UAS MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were partially or fully processed. When a UAS
+abandons a response after partial processing, it SHOULD abort its response stream with the error code
+SIP3_REQUEST_CANCELLED.
 
 ### Malformed requests and responses {#malformed}
 
