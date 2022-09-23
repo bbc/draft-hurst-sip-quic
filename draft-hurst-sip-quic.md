@@ -328,8 +328,8 @@ On a given request stream, receipt of multiple requests MUST be treated as malfo
 
 A SIP message (request or response) consists of:
 
-1. the header section, including message control data, sent in SIP/3 as a single `HEADERS` frame,
-2. optionally, the message body, if present, sent in SIP/3 as a series of `DATA` frames.
+1. the header section, including message control data, sent in SIP/3 as a single HEADERS frame,
+2. optionally, the message body, if present, sent in SIP/3 as a series of DATA frames.
 
 Headers are described in {{Section 7.3 of SIP2.0}}. Message bodies are described in {{Section 7.4 of SIP2.0}}.
 
@@ -393,26 +393,27 @@ SIP3_REQUEST_CANCELLED.
 
 ### Malformed requests and responses {#malformed}
 
-A malformed request or response is one that is an otherwise valid sequence of frames but is invalid due to:
+A malformed request or response is one that is a sequence of syntactically valid SIP/3 frames but that is invalid due to:
 
-* the presence of prohibited header fields or pseudo-header fields,
-* the absence of mandatory pseudo-header fields,
-* invalid values for pseudo-header fields,
-* pseudo-header fields after header fields,
-* an invalid sequence of SIP messages, such as a message body being present before a header section,
-* the inclusion of uppercase header field names,
-* the inclusion of invalid characters in field names or values.
+* an invalid sequence of SIP/3 frames, such as a DATA frame preceding a HEADERS frame,
+* the presence of prohibited header fields or pseudo-header fields in a HEADERS frame,
+* the absence of mandatory pseudo-header fields in a HEADERS frame,
+* invalid values for pseudo-header fields in a HEADERS frame,
+* pseudo-header fields after header fields in a HEADERS frame,
+* the inclusion of uppercase header field names in a HEADERS frame,
+* the inclusion of invalid characters in field names or values in a HEADERS frame.
 
 A request or response that is defined as having content when it contains a `Content-Length` header field (see
 {{Section 18.3 of SIP2.0}}) is malformed if the value of the `Content-Length` header field does not equal the sum of
-the DATA frame lengths received.
+the received `DATA` frame lengths.
 
-Intermediaries that process SIP requests or responses such as a proxy server MUST NOT forward a malformed request or
-response. Malformed requests or responses that are detected MUST be treated as a stream error of type
+Intermediaries that process SIP/3 request or response messages (such as a proxy server) MUST NOT forward a malformed
+request or response. Malformed requests or responses that are detected MUST be treated as a stream error of type
 SIP3_MESSAGE_ERROR.
 
-For malformed requests, a user agent server MAY send an HTTP response indicating the error prior to closing or
-resetting the stream. Clients MUST NOT accept a malformed response.
+A UAS MAY respond to a malformed request, indicating the error prior to closing or resetting the stream.
+
+A UAC MUST NOT accept a malformed response.
 
 *[malformed]: #
 
@@ -422,19 +423,23 @@ SIP messages carry metadata as a series of key-value pairs called "SIP header fi
 For a listing of registered SIP header fields, see the "Session Initiation Protocol (SIP) Parameters - Header Fields
 Registry" maintained at <https://www.iana.org/assignments/sip-parameters/sip-parameters.xhtml#sip-parameters-2>.
 
-In SIP/3, header fields are compressed and decompressed by {{QPACK}}, including the control data present in the header
-section. The static table defined in {{Appendix A of QPACK}} is designed for use with HTTP, and as such contains
-header fields that are of little to no interest to SIP endpoints. {{static-table}} in this document defines a
-replacement static table that MUST be used with SIP/3.
+### SIP/3 Header Compression
 
-A SIP/3 implementation MAY impose a limit on the maximum size of the encoded field section it will accept on an
+The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
+Instead, header fields (including the control data present in the header section) are compressed an decompressed
+using the {{QPACK}} codec.
+
+A SIP/3 implementation MAY impose a limit on the maximum size of the encoded field section it will accept for an
 individual SIP message using the SETTINGS_MAX_FIELD_SECTION_SIZE parameter. Unlike HTTP, there is no response code in
-SIP for the size of a header block being too large. If a receiver encounters an encoded field section larger than it
-has promised to accept, then it MUST treat this as stream error of type SIP3_HEADER_TOO_LARGE, and discard the
-response.
+SIP for the size of a header block being too large. If a user agent receives an encoded field section larger than it
+has promised to accept, it MUST treat this as stream error of type SIP3_HEADER_TOO_LARGE, and discard the response.
 
 {{Section 4.2 of QPACK}} describes the definition of two unidirectional stream types for the encoder and decoder
-streams. The values of the types are identical when used with SIP/3, see {{unidirectional-streams}}.
+streams. The values of these stream types are identical when used with SIP/3, see {{unidirectional-streams}}.
+
+The static table defined in {{Appendix A of QPACK}} is designed for use with HTTP and, as such, contains header
+fields that are of little interest to SIP endpoints. {{static-table}} in this document defines a replacement
+static table that MUST be used by SIP/3 transport clients and servers.
 
 To bound the memory requirements of the decoder for the QPACK dynamic table, the decoder limits the maximum value the
 encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. The dynamic
@@ -444,18 +449,58 @@ then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
 table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
-this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. As above, the HTTP/3 setting
-is replicated in SIP/3 in the form of the SETTINGS_QPACK_BLOCKED_STREAMS parameter sent by the decoder, which controls
-the number of streams that are allowed to be "blocked" by pending dynamic table updates. Blocked streams can be avoided
-by sending Huffman-encoded literals. If a decoder encounters more blocked streams than it promised to support, it MUST
-treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
+this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. The HTTP/3 setting
+SETTINGS_QPACK_BLOCKED_STREAMS is replicated as a SIP/3 parameter, set by the recipient, determines the maximum number
+of streams that are allowed to be "blocked" by pending dynamic table updates. If a decoder encounters more blocked
+streams than it promised to support, it MUST treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
 
-The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
+Stream blocking can be avoided by sending Huffman-encoded literals instead of updating the QPACK dynamic table.
 
-SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of requests
-are instead inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and
-forward SIP/3 messages as earlier versions of SIP are responsible for defining the value carried in the `CSeq` header
-field for those messages, and the mapping of those values back to the requisite SIP/3 request stream.
+### SIP Control Data
+
+SIP/3 employs a series of pseudo-header fields where the field name begins with the `:` character (ASCII 0x3a). These
+pseudo-header fields convey message control data, which replaces the `Request-Line` described in
+{{Section 7.1 of SIP2.0}}.
+
+Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
+defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
+
+Pseudo-header fields are only valid in the context in which they are defined. Pseudo-header fields defined for requests
+MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
+fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
+invalid pseudo-header fields as malformed.
+
+All pseudo-header fields MUST appear in the header section before regular header fields. Any request or response that
+contains a pseudo-header field that appears in a header section after a regular header field MUST be treated as
+malformed.
+
+#### Request Pseudo-header fields
+
+The following pseudo-header fields are defined for requests:
+
+* ":method": Contains the SIP method. See {{methods}} to understand SIP/3-specific usages of SIP methods.
+
+* ":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP2.0}}.
+
+All SIP/3 requests MUST include exactly one value for the `:method` and `:request-uri` pseudo-header fields. The
+`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP2.0}} is omitted, as the SIP version is
+given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 requests
+implicitly have a protocol version of "3.0".
+
+A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
+is malformed.
+
+#### Response Pseudo-header fields
+
+For responses, a single ":status" pseudo-header field is defined that carries the SIP status code, see
+{{Section 7.2 of SIP2.0}}.
+
+All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
+`Reason-Phrase` elements of the `Status-Line` structure in {{Section 7.2 of SIP2.0}} are omitted. The SIP version is
+given by the negotiated ALPN version string as described in {{quic-transport}} and, as such, all SIP/3 responses
+implicitly have a protocol version of "3.0". If it is required, for example to provide a human readable string of a
+received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
+listed in {{Section 21 of SIP2.0}}.
 
 ### Contact Header Field Version Extension {#contact-extension}
 
@@ -480,51 +525,13 @@ Contact: "Mr. Watson" <sip:watson@example.com>;
 ~~~
 {: #fig-contact-version-extension-example title="Example usage of the \"v\" Contact header field parameter"}
 
-### SIP Control Data
+### Transaction sequence number {#cseq}
 
-SIP/3 employs a series of pseudo-header fields where the field name begins with the `:` character (ASCII 0x3a). These
-pseudo-header fields convey message control data, which replaces the `Request-Line` described in
-{{Section 7.1 of SIP2.0}}.
-
-Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
-defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
-
-Pseudo-header fields are only valid in the context in which they are defined. Pseudo-header fields defined for requests
-MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
-fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
-invalid pseudo-header fields as malformed.
-
-All pseudo-header fields MUST appear in the header section before regular header fields. Any request or response that
-contains a pseudo-header field that appears in a header section after a regular header field MUST be treated as
-malformed.
-
-#### Request Pseudo-header fields
-
-The following pseudo-header fields are defined for requests:
-
-":method": Contains the SIP method. See {{methods}} to understand SIP/3-specific usages of SIP methods.
-
-":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP2.0}}.
-
-All SIP/3 requests MUST include exactly one value for the `:method` and `:request-uri` pseudo-header fields. The
-`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP2.0}} is omitted, as the SIP version is
-given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 requests
-implicitly have a protocol version of "3.0".
-
-A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
-is malformed.
-
-#### Response Pseudo-header fields
-
-For responses, a single ":status" pseudo-header field is defined that carries the SIP status code, see
-{{Section 7.2 of SIP2.0}}.
-
-All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
-`Reason-Phrase` elements of the `Status-Line` structure in {{Section 7.2 of SIP2.0}} is omitted. The SIP version is
-given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 responses
-implicitly have a protocol version of "3.0". If it is required, for example to provide a human readable string of a
-received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
-listed in {{Section 21 of SIP2.0}}.
+SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of SIP/3
+transactions is instead inferred from the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries
+that forward SIP/3 messages to SIP sessions of an earlier versions are responsible for defining the value carried in
+the `CSeq` header field for those messages, and for mapping those values back to the correct SIP/3 request stream in
+the opposite direction.
 
 # Compatibility With Earlier SIP Versions {#compatibility}
 
@@ -541,21 +548,21 @@ listed in {{Section 21 of SIP2.0}}.
 ~~~
 {: #fig-mixed-sip-versions title="Example showing mixed SIP versions"}
 
-In the above example, the proxy initiator, invitee and proxy server identified as "Proxy A" all support SIP/3, but the
-proxy server identified as "Proxy B" does not, and only supports SIP/2.0 over TCP/TLS and UDP. When Proxy A attempts to
-connect to Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV record
-{{?RFC2782}} may have indicated that the server only supports `_sips` services over TCP, thereby implying SIP/2.0.
+In the above example, the Initiator, Invitee and the proxy server identified as "Proxy A" all support SIP/3, but the
+proxy server identified as "Proxy B" only supports SIP/2.0 over TCP/TLS and UDP. When Proxy A attempts to connect to
+Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV record {{?RFC2782}}
+may have indicated that the server only supports `_sips` services over TCP, thereby implying SIP/2.0.
 
-If Proxy B only supported unencrypted SIP over UDP, then Proxy A MUST NOT forward messages from the secure SIP/3 over
-an unencrypted protocol, as this could constitute a downgrade attack. Instead, if the designated invitee cannot be
-contacted by a means other than via Proxy B, then Proxy A would return a response of `502 Bad Gateway` to the initiator
+If Proxy B only supports unencrypted SIP over UDP, then Proxy A MUST NOT forward messages from the secure SIP/3 over
+an unencrypted protocol because this could constitute a downgrade attack. Instead, if the designated Invitee cannot be
+contacted by means other than via Proxy B, then Proxy A MUST return a response of `502 Bad Gateway` to the initiator
 for that transaction.
 
-When initiating direct communication with an invitee after the conclusion of the initial `INVITE`, the decision to use
-SIP/3 SHOULD be performed as follows:
+When initiating direct communication with an invitee after the conclusion of the initial `INVITE` transaction, SIP/3
+SHOULD be used if:
 
-* If the DNS SRV record for the SIPS URI indicates that the invitee supports SIPS over UDP, or
-* If the `Contact:` header field carries the "v" parameter described in {{contact-extension}} and indicates a
+* The DNS SRV record for the SIPS URI indicates that the invitee supports SIPS over UDP, or
+* The `Contact:` header field carries the "v" parameter described in {{contact-extension}} and indicates a
 preference for SIP/3.
 
 ## Transactions
@@ -575,19 +582,20 @@ the `Call-ID:` and `tag=` values MUST continue to be used in SIP/3.
 # Stream Mapping and Usage {#stream-mapping}
 
 A QUIC stream provides reliable and in-order delivery of bytes on that stream, but makes no guarantees about order of
-delivery with regard to bytes on other streams. The semantics of the QUIC stream layer is invisible to the SIP framing
+delivery with regard to bytes on other streams. The semantics of the QUIC stream layer is opaque to the SIP framing
 layer. The transport layer buffers and orders received stream data, exposing a reliable byte stream to the application.
 Although QUIC permits out-of-order delivery within a stream, SIP/3 does not make use of this feature.
 
 QUIC streams can be either unidirectional, carrying data only from initiator to receiver, or bidirectional, carrying
-data in both directions. Bidirectional streams are used exclusively to convey SIP/3 request and response messages;
-unidirectional streams are used only for controlling the SIP/3 session itself. A bidirectional stream ensures that the
-response can be readily correlated with the request. These streams are referred to as request streams.
+data in both directions. In the context of this specification, bidirectional streams are used to convey SIP/3 request
+and response messages; unidirectional streams are used only for controlling the SIP/3 session itself. A bidirectional
+stream ensures that the response can be readily correlated with the request. These streams are referred to as request
+streams.
 
 {{SIP2.0}} is designed to run over unreliable transports such as UDP. Since QUIC guarantees reliability, some of the
-features of SIP/2.0 are no longer required. User agents MUST NOT send the `CSeq` header field in requests or
-responses, as the messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and
-earlier versions when forwarding message are responsible for handing the mapping of the `CSeq` header field to
+features of SIP/2.0 are not required. User agents MUST NOT send the `CSeq` header field in requests or responses
+because the messages are already associated with a QUIC stream. Intermediaries that convert SIP/3 to SIP/2.0 and
+earlier versions when forwarding messages are responsible for handing the mapping of the `CSeq` header field to
 individual transactions.
 
 > **Author's note:** The author invites feedback as to whether the MUST NOT in relation to the `CSeq` header could be
@@ -606,13 +614,13 @@ If the {{QPACK}} dynamic table is used, then the unidirectional encoder and deco
 
 ## Bidirectional Streams {#bidirectional-streams}
 
-All bidirectional streams are used for SIP requests and responses. These streams are referred to as request streams.
+Bidirectional QUIC streams are used for SIP requests and responses. These streams are referred to as request streams.
 
 ## Unidirectional Streams {#unidirectional-streams}
 
-SIP/3 makes use of unidirectional streams. The purpose of a given unidirectional stream is indicated by a stream type,
-which is sent as a variable-length integer at the start of the stream. The format and structure of data that follows
-this integer is determined by the stream type.
+SIP/3 makes use of unidirectional QUIC streams. The purpose of a given unidirectional stream is indicated by a stream
+type, which is sent as a variable-length integer at the start of the stream. The format and structure of data that
+follows this integer is determined by the stream type.
 
 ~~~
 Unidirectional Stream Header {
@@ -633,23 +641,23 @@ From RFC 9114:
 The performance of HTTP/3 connections in the early phase of their lifetime is sensitive to the creation and exchange of data on unidirectional streams. Endpoints that excessively restrict the number of streams or the flow-control window of these streams will increase the chance that the remote peer reaches the limit early and becomes blocked. In particular, implementations should consider that remote peers may wish to exercise reserved stream behavior (Section 6.2.3) with some of the unidirectional streams they are permitted to use.
 {:/comment}
 
-Each endpoint needs to create at least one unidirectional stream for the SIP/3 control stream. If the QPACK dynamic
-table is used, then each endpoint will open two additional unidirectional streams each. Other extensions might request
-further streams. Therefore, the transport parameters sent by both endpoints MUST allow the peer to create at least
-three unidirectional streams. These transport parameters SHOULD also provide at least 1,024 bytes of flow-control
-credit to each unidirectional stream.
+Each SIP/3 user agent MUST create at least one unidirectional stream for the SIP/3 control stream. If the QPACK dynamic
+table is used, then each endpoint will open two additional unidirectional streams each. Other extensions might require
+further unidirectional streams. Therefore, the transport parameters sent by both endpoints MUST allow the peer to create
+at least three unidirectional streams. These transport parameters SHOULD also provide at least 1,024 bytes of
+flow-control credit to each unidirectional stream.
 
 If the stream header indicates a stream type that is not supported by the recipient, the receiver MUST abort reading
 the stream, discard incoming data without further processing, and reset the stream with the SIP3_STREAM_CREATION_ERROR
 error code. The recipient MUST NOT consider unknown stream types to be a connection error of any kind.
 
-Since certain stream types can affect connection state, a recipient SHOULD NOT discard data from incoming
+Since certain stream types can affect connection state, a recipient user agent SHOULD NOT discard data from incoming
 unidirectional streams prior to reading the stream type.
 
-Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer supports
-before sending streams of that type. Implementations MAY send stream types that do not modify the state or semantics of
-existing protocol components before it is known whether the peer supports them, but MUST NOT send stream types that do
-(such as QPACK).
+Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer user agent
+supports before sending streams of that type. Implementations MAY send stream types that do not modify the state or
+semantics of existing protocol components before it is known whether the peer user agent supports them, but MUST NOT
+send stream types that do (such as QPACK).
 
 A sender can close or reset a unidirectional stream unless otherwise specified. A receiver MUST tolerate unidirectional
 streams being closed or reset prior to the reception of the unidirectional stream header.
@@ -659,16 +667,19 @@ streams being closed or reset prior to the reception of the unidirectional strea
 A control stream is indicated by a stream type of `0x00`. Data on this stream consists of SIP/3 frames, as defined in
 {{framing-layer}}.
 
-Each endpoint MUST initiate a single control stream at the beginning of the connection and send its SETTINGS frame as
-the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be treated
-as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream per peer is permitted; receipt of a second
-stream claiming to be a control stream MUST be treated as a connection error of type SIP3_STREAM_CREATION_ERROR.
+Each SIP/3 user agent MUST initiate a single control stream at the beginning of the connection and send its `SETTINGS`
+frame as the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be 
+treated as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream is permitted per user agent; receipt
+of a second stream claiming to be a control stream MUST be treated as a connection error of type
+SIP3_STREAM_CREATION_ERROR.
 
 The control stream MUST NOT be closed by the sender, and the receiver MUST NOT request that the sender close the
 control stream. If either control stream is closed at any point, this MUST be treated as a connection error of type
-SIP3_CLOSED_CRITICAL_STREAM. Connection errors are described in {{error-handling}}.
+SIP3_CLOSED_CRITICAL_STREAM.
 
-Because the contents of the control stream are used to manage the behaviour of other streams, endpoints SHOULD provide
+Connection errors are described in {{error-handling}}.
+
+Because the contents of the control stream are used to manage the behaviour of other streams, user agents SHOULD provide
 enough flow-control credit to keep the peer's control stream from becoming blocked.
 
 # SIP Methods {#methods}
@@ -676,10 +687,10 @@ enough flow-control credit to keep the peer's control stream from becoming block
 The `REGISTER`, `INVITE`, `ACK` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did
 in earlier versions of the protocol.
 
-The `CANCEL` method MUST NOT be used in SIP/3. If a request needs to be cancelled, the CANCEL frame SHOULD be used, or
-the stream for that request reset. Note that even after sending a CANCEL frame or the stream reset, data may still
-arrive on the stream as the messages may already be in flight by the time the CANCEL frame or QUIC RESET_STREAM frame
-({{Section 19.4 of QUIC-TRANSPORT}}) is received and processed by the peer.
+The `CANCEL` method MUST NOT be used in SIP/3. If a SIP/3 request needs to be cancelled, the `CANCEL` frame SHOULD be
+used instead, or the stream for that request reset using the QUIC `RESET_STREAM` frame
+({{Section 19.4 of QUIC-TRANSPORT}}). Note that SIP/3 messages in flight at the time may still arrive on a stream
+before the cancellation is received and processed by the peer.
 
 > **Author's note:** I have not done a comprehensive review of all SIP/2.0 extensions and their applicability to this
 document, so I invite feedback on any other methods that may be problematic.
@@ -687,7 +698,7 @@ document, so I invite feedback on any other methods that may be problematic.
 # SIP Framing Layer {#framing-layer}
 
 SIP/3 frames are carried on QUIC streams, as described in {{stream-mapping}}. SIP/3 defines a single stream type: the
-request stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
+Request Stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
 
 | Frame    | Request Stream | Control Stream | Section            |
 |:---------|:---------------|:---------------|:-------------------|
@@ -736,8 +747,8 @@ error of type SIP3_FRAME_ERROR. Streams that terminate abruptly may be reset at 
 
 ### DATA {#data-frame}
 
-`DATA` frames (type=`0x00`) convey arbitrary, variable-length sequences of bytes associated with the SIP request or
-response content.
+`DATA` frames (type=`0x00`) are only sent on Request Streams. The frame payload carried in the Data field conveys
+an arbitrary, variable-length sequences of bytes associated with a SIP/3 request or response message.
 
 `DATA` frames MUST be associated with a SIP request or response.
 
@@ -752,8 +763,9 @@ DATA Frame {
 
 ### HEADERS {#headers-frame}
 
-`HEADERS` frames (type=`0x01`) are used to carry the collection of SIP header fields that are associated with a SIP
-request or response as described in {{header-fields}} that is encoded using {{QPACK}}.
+`HEADERS` frames (type=`0x01`) are only sent on Request Streams. They are used to carry the collection of SIP
+header fields associated with a SIP request or response message, as described in {{header-fields}}. The payload,
+carried in Encoded Field Section, is encoded using {{QPACK}}.
 
 ~~~
 HEADERS Frame {
@@ -766,10 +778,10 @@ HEADERS Frame {
 
 ### CANCEL {#cancel-frame}
 
-The `CANCEL` frame (type=`0x02`) is only sent on the control stream and informs the receiver that its peer that it does
-not wish for the receiver to do any further processing on the message carried by the associated bidirectional stream
-ID. If the receiver has already completed the processing for the message, sent the response and closed the sending end
-of the stream, it MUST discard this frame.
+The `CANCEL` frame (type=`0x02`) is only sent on a Control Stream and informs the receiver that its peer user agent
+does not intend to do any further processing on the message carried by the associated bidirectional stream ID. If
+the receiver has already completed the processing for the message, sent the response and closed the sending end of
+the stream, it MUST disregard this frame.
 
 > **Author's Note:** Remove the length from this frame type as the stream ID field is self-describing.
 
@@ -782,26 +794,28 @@ CANCEL Frame {
 ~~~
 {: #fig=sip-cancel-frame-format title="CANCEL Frame"}
 
-Senders MUST NOT send this stream with a stream ID that has not been acknowledged by its peer. Endpoints that receive
-a `CANCEL` frame with a stream ID that has not yet been opened MUST respond with a connection error of type
+Senders MUST NOT send this frame with a stream ID that has not been acknowledged by its peer. A user agent that
+receives a `CANCEL` frame with a stream ID that has not yet been opened MUST respond with a connection error of type
 SIP3_CANCEL_STREAM_CLOSED error.
 
 ### SETTINGS {#settings-frame}
 
-The `SETTINGS` frame (type=`0x04`) conveys configuration parameters that affect how endpoints communicate, such as
-preferences and constraints on peer behaviour. The parameters always apply to an entire SIP/3 connection, never a
-single stream. A `SETTINGS` frame MUST be sent as the first frame of each control stream by each peer, and it MUST NOT
-be sent subsequently. If an endpoint receives a second `SETTINGS` frame on the control stream, or any other stream, the
-endpoint MUST respond with a connection error of type SIP3_FRAME_UNEXPECTED.
+The `SETTINGS` frame (type=`0x04`) is only sent on a Control Stream. It conveys configuration parameters that affect
+how SIP/3 user agents communicate, such as preferences and constraints on peer behaviour. The parameters always apply
+to an entire SIP/3 connection, never to a single transaction. A `SETTINGS` frame MUST be sent as the first frame of
+each Control Stream by each peer user agent, and it MUST NOT be sent subsequently. If a SIP/3 user agent receives a
+second `SETTINGS` frame on the control stream, or any other stream, the user agent MUST respond with a connection
+error of type SIP3_FRAME_UNEXPECTED.
 
-`SETTINGS` parameters are not negotiated; they describe characteristics of the sending peer that can be used by the
-receiving peer. However, a negotiation can be implied by the use of `SETTINGS`: each peer uses `SETTINGS` to advertise
-a set of supported values. Each peer combines the two sets to conclude which choice will be used. `SETTINGS` does not
-provide a mechanism to identify when the choice takes effect.
+`SETTINGS` parameters are not negotiated; they describe characteristics of the sending user agent that can be used by
+the receiving user agent. However, a negotiation can be implied by the use of `SETTINGS`: each user agent uses
+`SETTINGS` to advertise a set of supported values. Each user agent combines the two sets to conclude which choice will
+be used. `SETTINGS` does not provide a mechanism to identify when the choice takes effect.
 
-Different values for the same parameter can be advertised by each peer. The same parameter MUST NOT occur more than
-once in the `SETTINGS` frame. A receiver MAY treat the presence of duplicate setting identifiers as a connection error
-of type SIP3_SETTINGS_ERROR.
+Different values for the same parameter can be advertised by the two user agents.
+
+The same parameter MUST NOT occur more than once in the `SETTINGS` frame. A receiver MAY treat the presence of
+duplicate setting identifiers as a connection error of type SIP3_SETTINGS_ERROR.
 
 The payload of a `SETTINGS` frame consists of zero or more parameters. Each parameter consists of a parameter
 identifier and a value, both encoded as QUIC variable-length integers.
@@ -847,9 +861,10 @@ SETTINGS_QPACK_BLOCKED_STREAMS (`0x07`):
 When a request cannot be completed successfully, or if there is an issue with the underlying QUIC stream, QUIC allows
 the application protocol to abruptly reset that stream and communicate a reason (see {{Section 2.4 of QUIC-TRANSPORT}}.
 This is referred to as a "stream error". A SIP/3 implementation can decide to close a QUIC stream and communicate the
-type of error. Wire encoding of error codes are defined in {{error-codes}}. Stream errors are distinct from SIP status
-codes that indicate error conditions. Stream errors indicate that the sender did not transfer or consume the full
-request or response, while SIP status codes indicate the result of a request that was successfully received.
+type of error. The wire encoding of error codes is defined in {{error-codes}}. Stream errors are distinct from SIP
+status codes that indicate error conditions. Stream errors indicate that the sender did not transfer or consume the
+full request or response message, while SIP status codes indicate the result of a request that was successfully
+received and processed by the recipient.
 
 If an entire connection needs to be terminated, QUIC similarly provides mechanisms to communicate a reason (see
 {{Section 5.3 of QUIC-TRANSPORT}}). This is referred to as a "connection error". Similar to stream errors, a SIP/3
@@ -859,8 +874,8 @@ Although called a "stream error", this does not necessarily indicate a problem w
 connection as a whole. Streams MAY also be reset if the result of a SIP response is no longer of interest to the user
 agent client, see {{cancel-request}}.
 
-{{extensions}} specifies that extensions may defined new error codes without negotiation. Use of an unknown error code
-or a known error code in an unexpected context MUST be treated as equivalent of SIP3_NO_ERROR.
+{{extensions}} specifies that extensions may define new error codes without negotiation. Use of an unknown error code
+or a known error code in an unexpected context MUST be treated as equivalent to SIP3_NO_ERROR.
 
 *[stream error]: #error-handling
 *[stream errors]: #error-handling (((stream error)))
@@ -882,7 +897,7 @@ use a more specific error code.
   {: anchor="SIP3_GENERAL_PROTOCOL_ERROR"}
 
 SIP3_INTERNAL_ERROR (0x0302):
-: An internal error has occurred in the SIP stack.
+: An internal error has occurred in the SIP/3 stack.
   {: anchor="SIP3_INTERNAL_ERROR"}
 
 SIP3_STREAM_CREATION_ERROR (0x0303):
@@ -930,7 +945,7 @@ SIP3_MESSAGE_ERROR (0x030e):
   {: anchor="SIP3_MESSAGE_ERROR"}
 
 SIP3_HEADER_COMPRESSION_FAILED (0x0310):
-: The QPACK decoder failed to interpret an encoded field section and is not able to continue decoding that field
+: The QPACK decoder failed to interpret an encoded field section and is not able to continue decoding that field.
 section
   {: anchor="SIP3_HEADER_COMPRESSION_FAILED"}
 
@@ -977,12 +992,13 @@ unknown frame type does not satisfy that requirement and SHOULD be treated as an
 
 Extensions that could change the semantics of existing protocol components MUST be negotiated before being used. For
 example, an extension that allows the multiplexing of other protocols such as media transport protocols over
-bidirectional QUIC streams MUST NOT be used until the peer has given a positive signal that this is acceptable.
+bidirectional QUIC streams MUST NOT be used until the peer user agent has given a positive signal that this is
+acceptable.
 
 This document does not mandate a specific method for negotiating the use of any extension, but it notes that a
-parameter ({{defined-settings}}) could be used for that purpose. If both peers set a value that indicates willingness
-to use the extension, then the extension can be used. If a parameter is used in this way, the default value MUST be
-defined in such a way that the extension is disabled if the setting is omitted.
+parameter ({{defined-settings}}) could be used for that purpose. If both peer user agents set a value that indicates
+willingness to use the extension, then the extension can be used. If a parameter is used in this way, the default
+value MUST be defined in such a way that the extension is disabled if the setting is omitted.
 
 # Future Carriage of Media Sessions {#media-sessions}
 
@@ -1004,44 +1020,45 @@ described in {{Section 3 of QUIC-DATAGRAMS}}.
 In the case of media carried in QUIC streams, if the media streams are transmitted using unidirectional streams, then
 new stream types will need to be defined. This document reserves the stream type value 0x04 for this, see
 {{unidirectional-streams}}. In the unlikely case where media streams are to be transmitted using bidirectional streams,
-the stream type mechanism will need to be extended to cover bidirectional streams, as SIP/3 currently assumes that SIP
-messages have exclusive use of the bidirectional streams.
+the stream type mechanism will need to be extended to cover bidirectional streams, because this specification currently
+assumes that SIP/3 messages have exclusive use of the bidirectional streams.
 
 ## Carriage of RTP in a QUIC Transport Session
 
-Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC DATAGRAMs, and with SIP and SDP
-already closely aligned with RTP media sessions it stands to reason that adapting SIP/3 to coexist within the same QUIC
-transport connection would save at least a round trip.
+Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC `DATAGRAM` frames. With SIP
+and SDP already closely aligned with RTP media sessions, adapting SIP/3 to coexist within the same QUIC transport
+connection as RTP/RTCP would save at least one network round trip.
 
-QRT only defines a way to carry RTP and RTCP in QUIC DATAGRAMs. RTP-over-QUIC defines a way to carry RTP and RTCP over
-QUIC streams (without specifying whether they are to be sent over bi- or unidirectional streams) and QUIC DATAGRAMs.
+* QRT only defines a way to carry RTP and RTCP in QUIC `DATAGRAM` frames.
+* RTP-over-QUIC defines a way to carry RTP and RTCP over QUIC `STREAM` frames (without specifying whether they are
+to be sent over bidirectional or unidirectional streams) as well as QUIC `DATAGRAM` frames.
 
-QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}} also describes
-a different set of SDP attributes to perform a similar task.
+In addition, QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}}
+also describes a different set of SDP attributes to perform a similar task.
 
 Future versions of this document or the above documents may specify a mechanism for signalling that a given media
-session will be carried in the same QUIC connection that the SIP/3 session is going to be carried in.
+session will be carried in the same QUIC connection as the SIP/3 session.
 
 ## Carriage of non-RTP media streaming protocols in a QUIC Transport Session
 
 {{RUSH}} does not specify a means to discover the presence of a RUSH streaming session, nor a mechanism for negotiating
-the encoding parameters of media that is being exchanged. RUSH has two modes of operation, Normal and Multi Stream
+the encoding parameters of media that is being exchanged. RUSH has two modes of operation: Normal and Multi Stream
 modes. Normal mode, as described in {{Section 4.3.1 of RUSH}}, uses a single bidirectional QUIC stream to send and
 receive media streams. Multi Stream mode, as described in {{Section 4.3.2 of RUSH}}, uses a bidirectional QUIC
-stream for each individual frame. Bidirectional streams appear to be used in order to give error feedback, as opposed
-to having a separate control stream for handling errors or using the QUIC transport error mechanism. If the stream type
-mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then SIP/3 could
-be used with RUSH.
+stream for each individual media frame. Bidirectional streams appear to be used in order to give error feedback, as
+opposed to having a separate control stream for handling errors or using the QUIC transport error mechanism. If the
+stream type mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then
+SIP/3 could be used with RUSH.
 
 {{Warp}} specifies that sessions are established using HTTP/3 WebTransport ({{WebTransH3}}). However, to the author's
 best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
-SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used. Warp uses
-unidirectional streams for sending media. Media is sent in ISO-BMFF "segments", similar to MPEG-DASH, with each stream
-carrying a single segment. This can easily be used with the reserved media stream type reserved in
+SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be useful in filling this
+gap. Warp uses QUIC unidirectional streams for sending media. Similar to MPEG-DASH, media is sent in ISO-BMFF "segments",
+with each stream carrying a single segment. This can easily be accommodated by the media stream type reserved in
 {{unidirectional-streams}}.
 
 {{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
-media sessions and endpoint capabilities, and as such SIP/3 probably isn't required.
+media sessions and endpoint capabilities and, as such, SIP/3 probably isn't required.
 
 # Security Considerations
 
@@ -1104,7 +1121,7 @@ New registries created in this document operate under the QUIC registration poli
 (SIP/3)" heading.
 
 The initial allocations in these registries are all assigned permanent status and list a change controller of the IETF
-and a contact of the $ working group (which WG?).
+and a contact of the _\[TBC\]_ working group.
 
 ### Frame Types {#iana-frames}
 
@@ -1239,9 +1256,9 @@ TODO acknowledge.
 # QPACK Static Table {#static-table}
 
 > **Author's Note:** This is only a preliminary table. The original HPACK static table was created after analysing the
-frequency of common HTTP header fields and their values, and QPACK repeated that effort and resulted in a different
-static table. The author welcomes any data that would permit a similar level of analysis for the frequency of common
-SIP header fields and their values.
+frequency of common HTTP header fields and their values. QPACK repeated that effort at a later date, which resulted in
+a different static table. The author welcomes any data that would permit a similar level of analysis for the frequency
+of common SIP header fields and their values.
 
 | Index | Name                | Value           |
 |:------|:--------------------|:----------------|
