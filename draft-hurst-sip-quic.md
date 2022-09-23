@@ -668,7 +668,7 @@ A control stream is indicated by a stream type of `0x00`. Data on this stream co
 {{framing-layer}}.
 
 Each SIP/3 user agent MUST initiate a single control stream at the beginning of the connection and send its `SETTINGS`
-frame as the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be 
+frame as the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be
 treated as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream is permitted per user agent; receipt
 of a second stream claiming to be a control stream MUST be treated as a connection error of type
 SIP3_STREAM_CREATION_ERROR.
