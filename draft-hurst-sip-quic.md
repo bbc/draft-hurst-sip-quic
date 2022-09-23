@@ -674,7 +674,7 @@ error code. The recipient MUST NOT consider unknown stream types to be a connect
 Since certain stream types can affect connection state, a recipient user agent SHOULD NOT discard data from incoming
 unidirectional streams prior to reading the stream type.
 
-Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer user agent
+Implementations SHOULD wait for the reception of a `SETTINGS` frame describing what stream types their peer user agent
 supports before sending streams of that type. Implementations MAY send stream types that do not modify the state or
 semantics of existing protocol components before it is known whether the peer user agent supports them, but MUST NOT
 send stream types that do (such as QPACK).
@@ -687,10 +687,10 @@ streams being closed or reset prior to the reception of the unidirectional strea
 The `REGISTER`, `INVITE`, `ACK` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP/3 as they did
 in earlier versions of the protocol.
 
-The `CANCEL` method MUST NOT be used in SIP/3. If a request needs to be cancelled, the CANCEL frame SHOULD be used, or
-the stream for that request reset. Note that even after sending a CANCEL frame or the stream reset, data may still
-arrive on the stream as the messages may already be in flight by the time the CANCEL frame or QUIC RESET_STREAM frame
-({{Section 19.4 of QUIC-TRANSPORT}}) is received and processed by the peer.
+The `CANCEL` method MUST NOT be used in SIP/3. If a SIP/3 request needs to be cancelled, the `CANCEL` frame SHOULD be
+used instead, or the stream for that request reset using the QUIC `RESET_STREAM` frame
+({{Section 19.4 of QUIC-TRANSPORT}}). Note that SIP/3 messages in flight at the time may still arrive on a stream
+before the cancellation is received and processed by the peer.
 
 > **Author's note:** I have not done a comprehensive review of all SIP/2.0 extensions and their applicability to this
 document, so I invite feedback on any other methods that may be problematic.
@@ -698,14 +698,14 @@ document, so I invite feedback on any other methods that may be problematic.
 # SIP Framing Layer {#framing-layer}
 
 SIP/3 frames are carried on QUIC streams, as described in {{stream-mapping}}. SIP/3 defines a single stream type: the
-request stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
+Request Stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
 
-| Frame    | Request Stream | Control Stream | Section            |
-|:---------|:---------------|:---------------|:-------------------|
-| DATA     | Yes            | No             | {{data-frame}}     |
-| HEADERS  | Yes            | No             | {{headers-frame}}  |
-| CANCEL   | No             | Yes            | {{cancel-frame}}   |
-| SETTINGS | No             | Yes            | {{settings-frame}} |
+| Frame      | Request Stream | Control Stream | Section            |
+|:-----------|:---------------|:---------------|:-------------------|
+| `DATA`     | Yes            | No             | {{data-frame}}     |
+| `HEADERS`  | Yes            | No             | {{headers-frame}}  |
+| `CANCEL`   | No             | Yes            | {{cancel-frame}}   |
+| `SETTINGS` | No             | Yes            | {{settings-frame}} |
 {: #frame-types "SIP/3 Frames"}
 
 *[DATA]: #data-frame
@@ -747,8 +747,8 @@ error of type SIP3_FRAME_ERROR. Streams that terminate abruptly may be reset at 
 
 ### DATA {#data-frame}
 
-`DATA` frames (type=`0x00`) convey arbitrary, variable-length sequences of bytes associated with the SIP request or
-response content.
+`DATA` frames (type=`0x00`) are only sent on Request Streams. The frame payload carried in the Data field conveys
+an arbitrary, variable-length sequences of bytes associated with a SIP/3 request or response message.
 
 `DATA` frames MUST be associated with a SIP request or response.
 
@@ -763,8 +763,9 @@ DATA Frame {
 
 ### HEADERS {#headers-frame}
 
-`HEADERS` frames (type=`0x01`) are used to carry the collection of SIP header fields that are associated with a SIP
-request or response as described in {{header-fields}} that is encoded using {{QPACK}}.
+`HEADERS` frames (type=`0x01`) are only sent on Request Streams. They are used to carry the collection of SIP
+header fields associated with a SIP request or response message, as described in {{header-fields}}. The payload,
+carried in Encoded Field Section, is encoded using {{QPACK}}.
 
 ~~~
 HEADERS Frame {
@@ -777,10 +778,10 @@ HEADERS Frame {
 
 ### CANCEL {#cancel-frame}
 
-The `CANCEL` frame (type=`0x02`) is only sent on the control stream and informs the receiver that its peer that it does
-not wish for the receiver to do any further processing on the message carried by the associated bidirectional stream
-ID. If the receiver has already completed the processing for the message, sent the response and closed the sending end
-of the stream, it MUST discard this frame.
+The `CANCEL` frame (type=`0x02`) is only sent on a Control Stream and informs the receiver that its peer user agent
+does not it to do any further processing on the message carried by the associated bidirectional stream ID. If the
+receiver has already completed the processing for the message, sent the response and closed the sending end of the
+stream, it MUST disregard this frame.
 
 > **Author's Note:** Remove the length from this frame type as the stream ID field is self-describing.
 
@@ -793,26 +794,28 @@ CANCEL Frame {
 ~~~
 {: #fig=sip-cancel-frame-format title="CANCEL Frame"}
 
-Senders MUST NOT send this stream with a stream ID that has not been acknowledged by its peer. Endpoints that receive
-a `CANCEL` frame with a stream ID that has not yet been opened MUST respond with a connection error of type
+Senders MUST NOT send this frame with a stream ID that has not been acknowledged by its peer. A user agent that
+receives a `CANCEL` frame with a stream ID that has not yet been opened MUST respond with a connection error of type
 SIP3_CANCEL_STREAM_CLOSED error.
 
 ### SETTINGS {#settings-frame}
 
-The `SETTINGS` frame (type=`0x04`) conveys configuration parameters that affect how endpoints communicate, such as
-preferences and constraints on peer behaviour. The parameters always apply to an entire SIP/3 connection, never a
-single stream. A `SETTINGS` frame MUST be sent as the first frame of each control stream by each peer, and it MUST NOT
-be sent subsequently. If an endpoint receives a second `SETTINGS` frame on the control stream, or any other stream, the
-endpoint MUST respond with a connection error of type SIP3_FRAME_UNEXPECTED.
+The `SETTINGS` frame (type=`0x04`) is only sent on a Control Stream. It conveys configuration parameters that affect
+how SIP/3 user agents communicate, such as preferences and constraints on peer behaviour. The parameters always apply
+to an entire SIP/3 connection, never to a single transaction. A `SETTINGS` frame MUST be sent as the first frame of
+each Control Stream by each peer user agent, and it MUST NOT be sent subsequently. If a SIP/3 user agent receives a
+second `SETTINGS` frame on the control stream, or any other stream, the user agent MUST respond with a connection
+error of type SIP3_FRAME_UNEXPECTED.
 
-`SETTINGS` parameters are not negotiated; they describe characteristics of the sending peer that can be used by the
-receiving peer. However, a negotiation can be implied by the use of `SETTINGS`: each peer uses `SETTINGS` to advertise
-a set of supported values. Each peer combines the two sets to conclude which choice will be used. `SETTINGS` does not
-provide a mechanism to identify when the choice takes effect.
+`SETTINGS` parameters are not negotiated; they describe characteristics of the sending user agnet that can be used by
+the receiving user agent. However, a negotiation can be implied by the use of `SETTINGS`: each user agent uses
+`SETTINGS` to advertise a set of supported values. Each user agent combines the two sets to conclude which choice will
+be used. `SETTINGS` does not provide a mechanism to identify when the choice takes effect.
 
-Different values for the same parameter can be advertised by each peer. The same parameter MUST NOT occur more than
-once in the `SETTINGS` frame. A receiver MAY treat the presence of duplicate setting identifiers as a connection error
-of type SIP3_SETTINGS_ERROR.
+Different values for the same parameter can be advertised by the two user agents.
+
+The same parameter MUST NOT occur more than once in the `SETTINGS` frame. A receiver MAY treat the presence of
+duplicate setting identifiers as a connection error of type SIP3_SETTINGS_ERROR.
 
 The payload of a `SETTINGS` frame consists of zero or more parameters. Each parameter consists of a parameter
 identifier and a value, both encoded as QUIC variable-length integers.
@@ -858,9 +861,10 @@ SETTINGS_QPACK_BLOCKED_STREAMS (`0x07`):
 When a request cannot be completed successfully, or if there is an issue with the underlying QUIC stream, QUIC allows
 the application protocol to abruptly reset that stream and communicate a reason (see {{Section 2.4 of QUIC-TRANSPORT}}.
 This is referred to as a "stream error". A SIP/3 implementation can decide to close a QUIC stream and communicate the
-type of error. Wire encoding of error codes are defined in {{error-codes}}. Stream errors are distinct from SIP status
-codes that indicate error conditions. Stream errors indicate that the sender did not transfer or consume the full
-request or response, while SIP status codes indicate the result of a request that was successfully received.
+type of error. The wire encoding of error codes is defined in {{error-codes}}. Stream errors are distinct from SIP
+status codes that indicate error conditions. Stream errors indicate that the sender did not transfer or consume the
+full request or response message, while SIP status codes indicate the result of a request that was successfully
+received and processed by the recipient.
 
 If an entire connection needs to be terminated, QUIC similarly provides mechanisms to communicate a reason (see
 {{Section 5.3 of QUIC-TRANSPORT}}). This is referred to as a "connection error". Similar to stream errors, a SIP/3
@@ -870,8 +874,8 @@ Although called a "stream error", this does not necessarily indicate a problem w
 connection as a whole. Streams MAY also be reset if the result of a SIP response is no longer of interest to the user
 agent client, see {{cancel-request}}.
 
-{{extensions}} specifies that extensions may defined new error codes without negotiation. Use of an unknown error code
-or a known error code in an unexpected context MUST be treated as equivalent of SIP3_NO_ERROR.
+{{extensions}} specifies that extensions may define new error codes without negotiation. Use of an unknown error code
+or a known error code in an unexpected context MUST be treated as equivalent to SIP3_NO_ERROR.
 
 *[stream error]: #error-handling
 *[stream errors]: #error-handling (((stream error)))
@@ -893,7 +897,7 @@ use a more specific error code.
   {: anchor="SIP3_GENERAL_PROTOCOL_ERROR"}
 
 SIP3_INTERNAL_ERROR (0x0302):
-: An internal error has occurred in the SIP stack.
+: An internal error has occurred in the SIP/3 stack.
   {: anchor="SIP3_INTERNAL_ERROR"}
 
 SIP3_STREAM_CREATION_ERROR (0x0303):
@@ -913,15 +917,15 @@ SIP3_FRAME_UNEXPECTED (0x0306):
   {: anchor="SIP3_FRAME_UNEXPECTED"}
 
 SIP3_CANCEL_FRAME_CLOSED (0x0307):
-: A CANCEL frame was received that referenced an unknown stream ID.
+: A `CANCEL` frame was received that referenced an unknown stream ID.
   {: anchor="SIP3_CANCEL_FRAME_CLOSED"}
 
 SIP3_SETTINGS_ERROR (0x0309):
-: An endpoint detected an error in the payload of a SETTINGS frame.
+: An endpoint detected an error in the payload of a `SETTINGS` frame.
   {: anchor="SIP3_SETTINGS_ERROR"}
 
 SIP3_MISSING_SETTINGS (0x030a):
-: No SETTINGS frame was received at the beginning of the control stream.
+: No `SETTINGS` frame was received at the beginning of the control stream.
   {: anchor="SIP3_MISSING_SETTINGS"}
 
 SIP3_REQUEST_INCOMPLETE (0x030d):
@@ -941,7 +945,7 @@ SIP3_MESSAGE_ERROR (0x030e):
   {: anchor="SIP3_MESSAGE_ERROR"}
 
 SIP3_HEADER_COMPRESSION_FAILED (0x0310):
-: The QPACK decoder failed to interpret an encoded field section and is not able to continue decoding that field
+: The QPACK decoder failed to interpret an encoded field section and is not able to continue decoding that field.
 section
   {: anchor="SIP3_HEADER_COMPRESSION_FAILED"}
 
@@ -983,17 +987,18 @@ codes ({{error-codes}}), or new stream types ({{stream-mapping}}).
 
 Implementations MUST ignore unknown or unsupported values in all extensible protocol elements. This means that any of
 these extension points can be safely used by extensions without prior arrangement or negotiation. However, where a
-known frame type is required to be in a specific location, such as the SETTINGS frame (see {{control-streams}}), an
+known frame type is required to be in a specific location, such as the `SETTINGS` frame (see {{control-streams}}), an
 unknown frame type does not satisfy that requirement and SHOULD be treated as an error.
 
 Extensions that could change the semantics of existing protocol components MUST be negotiated before being used. For
 example, an extension that allows the multiplexing of other protocols such as media transport protocols over
-bidirectional QUIC streams MUST NOT be used until the peer has given a positive signal that this is acceptable.
+bidirectional QUIC streams MUST NOT be used until the peer user agent has given a positive signal that this is
+acceptable.
 
 This document does not mandate a specific method for negotiating the use of any extension, but it notes that a
-parameter ({{defined-settings}}) could be used for that purpose. If both peers set a value that indicates willingness
-to use the extension, then the extension can be used. If a parameter is used in this way, the default value MUST be
-defined in such a way that the extension is disabled if the setting is omitted.
+parameter ({{defined-settings}}) could be used for that purpose. If both peer user agents set a value that indicates
+willingness to use the extension, then the extension can be used. If a parameter is used in this way, the default
+value MUST be defined in such a way that the extension is disabled if the setting is omitted.
 
 # Future Carriage of Media Sessions {#media-sessions}
 
@@ -1015,44 +1020,45 @@ described in {{Section 3 of QUIC-DATAGRAMS}}.
 In the case of media carried in QUIC streams, if the media streams are transmitted using unidirectional streams, then
 new stream types will need to be defined. This document reserves the stream type value 0x04 for this, see
 {{unidirectional-streams}}. In the unlikely case where media streams are to be transmitted using bidirectional streams,
-the stream type mechanism will need to be extended to cover bidirectional streams, as SIP/3 currently assumes that SIP
-messages have exclusive use of the bidirectional streams.
+the stream type mechanism will need to be extended to cover bidirectional streams, because this specification currently
+assumes that SIP/3 messages have exclusive use of the bidirectional streams.
 
 ## Carriage of RTP in a QUIC Transport Session
 
-Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC DATAGRAMs, and with SIP and SDP
-already closely aligned with RTP media sessions it stands to reason that adapting SIP/3 to coexist within the same QUIC
-transport connection would save at least a round trip.
+Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC `DATAGRAM` frames. With SIP
+and SDP already closely aligned with RTP media sessions, adapting SIP/3 to coexist within the same QUIC transport
+connection as RTP/RTCP would save at least one network round trip.
 
-QRT only defines a way to carry RTP and RTCP in QUIC DATAGRAMs. RTP-over-QUIC defines a way to carry RTP and RTCP over
-QUIC streams (without specifying whether they are to be sent over bi- or unidirectional streams) and QUIC DATAGRAMs.
+* QRT only defines a way to carry RTP and RTCP in QUIC `DATAGRAM` frames.
+* RTP-over-QUIC defines a way to carry RTP and RTCP over QUIC `STREAM` frames (without specifying whether they are
+to be sent over bidirectional or unidirectional streams) as well as QUIC `DATAGRAM` frames.
 
-QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}} also describes
-a different set of SDP attributes to perform a similar task.
+In addition, QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}}
+also describes a different set of SDP attributes to perform a similar task.
 
 Future versions of this document or the above documents may specify a mechanism for signalling that a given media
-session will be carried in the same QUIC connection that the SIP/3 session is going to be carried in.
+session will be carried in the same QUIC connection as the SIP/3 session.
 
 ## Carriage of non-RTP media streaming protocols in a QUIC Transport Session
 
 {{RUSH}} does not specify a means to discover the presence of a RUSH streaming session, nor a mechanism for negotiating
-the encoding parameters of media that is being exchanged. RUSH has two modes of operation, Normal and Multi Stream
+the encoding parameters of media that is being exchanged. RUSH has two modes of operation: Normal and Multi Stream
 modes. Normal mode, as described in {{Section 4.3.1 of RUSH}}, uses a single bidirectional QUIC stream to send and
 receive media streams. Multi Stream mode, as described in {{Section 4.3.2 of RUSH}}, uses a bidirectional QUIC
-stream for each individual frame. Bidirectional streams appear to be used in order to give error feedback, as opposed
-to having a separate control stream for handling errors or using the QUIC transport error mechanism. If the stream type
-mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then SIP/3 could
-be used with RUSH.
+stream for each individual media frame. Bidirectional streams appear to be used in order to give error feedback, as
+opposed to having a separate control stream for handling errors or using the QUIC transport error mechanism. If the
+stream type mechanism described in {{unidirectional-streams}} is expanded to cover bidirectional streams as well, then
+SIP/3 could be used with RUSH.
 
 {{Warp}} specifies that sessions are established using HTTP/3 WebTransport ({{WebTransH3}}). However, to the author's
 best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
-SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be used. Warp uses
-unidirectional streams for sending media. Media is sent in ISO-BMFF "segments", similar to MPEG-DASH, with each stream
-carrying a single segment. This can easily be used with the reserved media stream type reserved in
+SDP offer/answer exchanges, so some form of session establishment mechanism like SIP/3 could be useful in filling this
+gap. Warp uses QUIC unidirectional streams for sending media. Similar to MPEG-DASH, media is sent in ISO-BMFF "segments",
+with each stream carrying a single segment. This can easily be accommodated by the media stream type reserved in
 {{unidirectional-streams}}.
 
 {{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
-media sessions and endpoint capabilities, and as such SIP/3 probably isn't required.
+media sessions and endpoint capabilities and, as such, SIP/3 probably isn't required.
 
 # Security Considerations
 
@@ -1115,7 +1121,7 @@ New registries created in this document operate under the QUIC registration poli
 (SIP/3)" heading.
 
 The initial allocations in these registries are all assigned permanent status and list a change controller of the IETF
-and a contact of the $ working group (which WG?).
+and a contact of the _\[TBC\]_ working group.
 
 ### Frame Types {#iana-frames}
 
@@ -1136,13 +1142,13 @@ the frame that are conditionally present.
 
 The entries in {{fig-iana-frame-table}} are registered by this document.
 
-|:-----------|:-------|:-------------------|
-| Frame Type | Value  | Specification      |
-|:-----------|:-------|:-------------------|
-| DATA       | `0x00` | {{data-frame}}     |
-| HEADERS    | `0x01` | {{headers-frame}}  |
-| CANCEL     | `0x02` | {{cancel-frame}}   |
-| SETTINGS   | `0x04` | {{settings-frame}} |
+|:-------------|:-------|:-------------------|
+| Frame Type   | Value  | Specification      |
+|:-------------|:-------|:-------------------|
+| `DATA`       | `0x00` | {{data-frame}}     |
+| `HEADERS`    | `0x01` | {{headers-frame}}  |
+| `CANCEL`     | `0x02` | {{cancel-frame}}   |
+| `SETTINGS`   | `0x04` | {{settings-frame}} |
 {: #fig-iana-frame-table title="Initial SIP/3 Frame Types"}
 
 ### Settings Parameters {#iana-parameters}
@@ -1250,9 +1256,9 @@ TODO acknowledge.
 # QPACK Static Table {#static-table}
 
 > **Author's Note:** This is only a preliminary table. The original HPACK static table was created after analysing the
-frequency of common HTTP header fields and their values, and QPACK repeated that effort and resulted in a different
-static table. The author welcomes any data that would permit a similar level of analysis for the frequency of common
-SIP header fields and their values.
+frequency of common HTTP header fields and their values. QPACK repeated that effort at a later date, which resulted in
+a different static table. The author welcomes any data that would permit a similar level of analysis for the frequency
+of common SIP header fields and their values.
 
 | Index | Name                | Value           |
 |:------|:--------------------|:----------------|
