@@ -423,10 +423,11 @@ SIP messages carry metadata as a series of key-value pairs called "SIP header fi
 For a listing of registered SIP header fields, see the "Session Initiation Protocol (SIP) Parameters - Header Fields
 Registry" maintained at <https://www.iana.org/assignments/sip-parameters/sip-parameters.xhtml#sip-parameters-2>.
 
-In SIP/3, header fields are compressed and decompressed by {{QPACK}}, including the control data present in the header
-section. The static table defined in {{Appendix A of QPACK}} is designed for use with HTTP and, as such, contains
-header fields that are of little interest to SIP endpoints. {{static-table}} in this document defines a replacement
-static table that MUST be used by SIP/3 transport clients and servers.
+### SIP/3 Header Compression
+
+The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
+Instead, header fields (including the control data present in the header section) are compressed an decompressed
+using the {{QPACK}} codec.
 
 A SIP/3 implementation MAY impose a limit on the maximum size of the encoded field section it will accept for an
 individual SIP message using the SETTINGS_MAX_FIELD_SECTION_SIZE parameter. Unlike HTTP, there is no response code in
@@ -434,7 +435,11 @@ SIP for the size of a header block being too large. If a user agent receives an 
 has promised to accept, it MUST treat this as stream error of type SIP3_HEADER_TOO_LARGE, and discard the response.
 
 {{Section 4.2 of QPACK}} describes the definition of two unidirectional stream types for the encoder and decoder
-streams. The values of the types are identical when used with SIP/3, see {{unidirectional-streams}}.
+streams. The values of these stream types are identical when used with SIP/3, see {{unidirectional-streams}}.
+
+The static table defined in {{Appendix A of QPACK}} is designed for use with HTTP and, as such, contains header
+fields that are of little interest to SIP endpoints. {{static-table}} in this document defines a replacement
+static table that MUST be used by SIP/3 transport clients and servers.
 
 To bound the memory requirements of the decoder for the QPACK dynamic table, the decoder limits the maximum value the
 encoder is permitted to set for the dynamic table capacity, as specified in {{Section 3.2.3 of QPACK}}. The dynamic
@@ -444,18 +449,58 @@ then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
 table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
-this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. As above, the HTTP/3 setting
-is replicated in SIP/3 in the form of the SETTINGS_QPACK_BLOCKED_STREAMS parameter sent by the decoder, which controls
-the number of streams that are allowed to be "blocked" by pending dynamic table updates. Blocked streams can be avoided
-by sending Huffman-encoded literals. If a decoder encounters more blocked streams than it promised to support, it MUST
-treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
+this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. The
+SETTINGS_QPACK_BLOCKED_STREAMS parameter, set by the recipient, determines the maximum number of streams that are
+allowed to be "blocked" by pending dynamic table updates. If a decoder encounters more blocked streams than it promised
+to support, it MUST treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
 
-The abbreviated forms of SIP header fields described in {{Section 7.3.3 of SIP2.0}} MUST NOT be used with SIP/3.
+Stream blocking can be avoided by sending Huffman-encoded literals instead of updating the QPACK dynamic table.
 
-SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of requests
-are instead inferred by the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries that convert and
-forward SIP/3 messages as earlier versions of SIP are responsible for defining the value carried in the `CSeq` header
-field for those messages, and the mapping of those values back to the requisite SIP/3 request stream.
+### SIP Control Data
+
+SIP/3 employs a series of pseudo-header fields where the field name begins with the `:` character (ASCII 0x3a). These
+pseudo-header fields convey message control data, which replaces the `Request-Line` described in
+{{Section 7.1 of SIP2.0}}.
+
+Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
+defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
+
+Pseudo-header fields are only valid in the context in which they are defined. Pseudo-header fields defined for requests
+MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
+fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
+invalid pseudo-header fields as malformed.
+
+All pseudo-header fields MUST appear in the header section before regular header fields. Any request or response that
+contains a pseudo-header field that appears in a header section after a regular header field MUST be treated as
+malformed.
+
+#### Request Pseudo-header fields
+
+The following pseudo-header fields are defined for requests:
+
+* ":method": Contains the SIP method. See {{methods}} to understand SIP/3-specific usages of SIP methods.
+
+* ":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP2.0}}.
+
+All SIP/3 requests MUST include exactly one value for the `:method` and `:request-uri` pseudo-header fields. The
+`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP2.0}} is omitted, as the SIP version is
+given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 requests
+implicitly have a protocol version of "3.0".
+
+A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
+is malformed.
+
+#### Response Pseudo-header fields
+
+For responses, a single ":status" pseudo-header field is defined that carries the SIP status code, see
+{{Section 7.2 of SIP2.0}}.
+
+All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
+`Reason-Phrase` elements of the `Status-Line` structure in {{Section 7.2 of SIP2.0}} are omitted. The SIP version is
+given by the negotiated ALPN version string as described in {{quic-transport}} and, as such, all SIP/3 responses
+implicitly have a protocol version of "3.0". If it is required, for example to provide a human readable string of a
+received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
+listed in {{Section 21 of SIP2.0}}.
 
 ### Contact Header Field Version Extension {#contact-extension}
 
@@ -480,51 +525,13 @@ Contact: "Mr. Watson" <sip:watson@example.com>;
 ~~~
 {: #fig-contact-version-extension-example title="Example usage of the \"v\" Contact header field parameter"}
 
-### SIP Control Data
+### Transaction sequence number {#cseq}
 
-SIP/3 employs a series of pseudo-header fields where the field name begins with the `:` character (ASCII 0x3a). These
-pseudo-header fields convey message control data, which replaces the `Request-Line` described in
-{{Section 7.1 of SIP2.0}}.
-
-Pseudo-header fields are not SIP header fields. Endpoints MUST NOT generate pseudo-header fields other than those
-defined in this document. However, an extension could negotiate a modification of this restriction; see {{extensions}}.
-
-Pseudo-header fields are only valid in the context in which they are defined. Pseudo-header fields defined for requests
-MUST NOT appear in responses; pseudo-header fields defined for responses MUST NOT appear in requests. Pseudo-header
-fields MUST NOT appear in trailer sections. Endpoints MUST treat a request or response that contains undefined or
-invalid pseudo-header fields as malformed.
-
-All pseudo-header fields MUST appear in the header section before regular header fields. Any request or response that
-contains a pseudo-header field that appears in a header section after a regular header field MUST be treated as
-malformed.
-
-#### Request Pseudo-header fields
-
-The following pseudo-header fields are defined for requests:
-
-":method": Contains the SIP method. See {{methods}} to understand SIP/3-specific usages of SIP methods.
-
-":request-uri": Contains the SIPS URI as described in {{Section 19.1 of SIP2.0}}.
-
-All SIP/3 requests MUST include exactly one value for the `:method` and `:request-uri` pseudo-header fields. The
-`SIP-Version` element of the `Request-Line` structure in {{Section 7.1 of SIP2.0}} is omitted, as the SIP version is
-given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 requests
-implicitly have a protocol version of "3.0".
-
-A SIP request that omits any mandatory pseudo-header fields or contains invalid values for those pseudo-header fields
-is malformed.
-
-#### Response Pseudo-header fields
-
-For responses, a single ":status" pseudo-header field is defined that carries the SIP status code, see
-{{Section 7.2 of SIP2.0}}.
-
-All SIP/3 responses MUST include exactly one value for the ":status" pseudo-header field. The `SIP-Version` and
-`Reason-Phrase` elements of the `Status-Line` structure in {{Section 7.2 of SIP2.0}} is omitted. The SIP version is
-given by the negotiated ALPN version string as described in {{quic-transport}}, and as such all SIP/3 responses
-implicitly have a protocol version of "3.0". If it is required, for example to provide a human readable string of a
-received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
-listed in {{Section 21 of SIP2.0}}.
+SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of SIP/3
+transactions is instead inferred from the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries
+that forward SIP/3 messages to SIP sessions of an earlier versions are responsible for defining the value carried in
+the `CSeq` header field for those messages, and for mapping those values back to the correct SIP/3 request stream in
+the opposite direction.
 
 # Compatibility With Earlier SIP Versions {#compatibility}
 
