@@ -382,7 +382,7 @@ not been opened MUST be treated as a connection error of type SIP3_CANCEL_FRAME_
 
 The UAS cancels requests if they are unable or choose not to respond. UAS cancellations are always abrupt cancellations.
 When a UAS abruptly cancels a request without performing any application processing, the request is considered "rejected".
-In this caser, the UAS SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. (In this context,
+In this case, the UAS SHOULD abort its response stream with the error code SIP3_REQUEST_REJECTED. (In this context,
 "processed" means that some data from the request stream was passed to some higher layer of software that might have taken
 some action as a result.) The UAC MAY treat a request rejected by the UAS as though it had never been sent at all, and may
 retry the request later.
