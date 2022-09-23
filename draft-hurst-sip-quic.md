@@ -328,8 +328,8 @@ On a given request stream, receipt of multiple requests MUST be treated as malfo
 
 A SIP message (request or response) consists of:
 
-1. the header section, including message control data, sent in SIP/3 as a single `HEADERS` frame,
-2. optionally, the message body, if present, sent in SIP/3 as a series of `DATA` frames.
+1. the header section, including message control data, sent in SIP/3 as a single HEADERS frame,
+2. optionally, the message body, if present, sent in SIP/3 as a series of DATA frames.
 
 Headers are described in {{Section 7.3 of SIP2.0}}. Message bodies are described in {{Section 7.4 of SIP2.0}}.
 
