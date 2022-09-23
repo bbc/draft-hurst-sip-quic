@@ -337,7 +337,7 @@ Receipt of an invalid sequence of frames MUST be treated as a connection error o
 particular, a DATA frame received before any HEADERS frame is considered invalid. Other frame types, especially unknown
 frame types, MAY be permitted, subject to their own rules, see {{extensions}}.
 
-The `HEADERS` frame might reference updates to the QPACK dynamic table. While these updates are not directly part of the
+The HEADERS frame might reference updates to the QPACK dynamic table. While these updates are not directly part of the
 message exchange, they MUST be received and processed before the message can be consumed.
 
 {::comment}
@@ -395,13 +395,13 @@ SIP3_REQUEST_CANCELLED.
 
 A malformed request or response is one that is a sequence of syntactically valid SIP/3 frames but that is invalid due to:
 
-* an invalid sequence of SIP/3 frames, such as a `DATA` frame preceding a `HEADERS` frame,
-* the presence of prohibited header fields or pseudo-header fields in a `HEADERS` frame,
-* the absence of mandatory pseudo-header fields in a `HEADERS` frame,
-* invalid values for pseudo-header fields in a `HEADERS` frame,
-* pseudo-header fields after header fields in a `HEADERS` frame,
-* the inclusion of uppercase header field names in a `HEADERS` frame,
-* the inclusion of invalid characters in field names or values in a `HEADERS` frame.
+* an invalid sequence of SIP/3 frames, such as a DATA frame preceding a HEADERS frame,
+* the presence of prohibited header fields or pseudo-header fields in a HEADERS frame,
+* the absence of mandatory pseudo-header fields in a HEADERS frame,
+* invalid values for pseudo-header fields in a HEADERS frame,
+* pseudo-header fields after header fields in a HEADERS frame,
+* the inclusion of uppercase header field names in a HEADERS frame,
+* the inclusion of invalid characters in field names or values in a HEADERS frame.
 
 A request or response that is defined as having content when it contains a `Content-Length` header field (see
 {{Section 18.3 of SIP2.0}}) is malformed if the value of the `Content-Length` header field does not equal the sum of
@@ -449,10 +449,10 @@ then the endpoints SHOULD NOT open the encoder and decoder streams.
 
 When the dynamic table is in use, a QPACK decoder may encounter an encoded field section that references a dynamic
 table entry that it has not yet received, because QUIC does not guarantee order between data on different streams. In
-this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. The
-SETTINGS_QPACK_BLOCKED_STREAMS parameter, set by the recipient, determines the maximum number of streams that are
-allowed to be "blocked" by pending dynamic table updates. If a decoder encounters more blocked streams than it promised
-to support, it MUST treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
+this case, the stream is considered "blocked" as described in {{Section 2.1.2 of QPACK}}. The HTTP/3 setting
+SETTINGS_QPACK_BLOCKED_STREAMS is replicated as a SIP/3 parameter, set by the recipient, determines the maximum number
+of streams that are allowed to be "blocked" by pending dynamic table updates. If a decoder encounters more blocked
+streams than it promised to support, it MUST treat this as a connection error of type SIP3_HEADER_DECOMPRESSION_FAILED.
 
 Stream blocking can be avoided by sending Huffman-encoded literals instead of updating the QPACK dynamic table.
 
@@ -612,26 +612,6 @@ If the {{QPACK}} dynamic table is used, then the unidirectional encoder and deco
 *[control stream]: #control-streams
 *[control streams]: #control-streams (((control stream)))
 
-### Control Streams {#control-streams}
-
-A control stream is indicated by a stream type of `0x00`. Data on this stream consists of SIP/3 frames, as defined in
-{{framing-layer}}.
-
-Each SIP/3 user agent MUST initiate a single control stream at the beginning of the connection and send its `SETTINGS`
-frame as the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be 
-treated as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream is permitted per user agent; receipt
-of a second stream claiming to be a control stream MUST be treated as a connection error of type
-SIP3_STREAM_CREATION_ERROR.
-
-The control stream MUST NOT be closed by the sender, and the receiver MUST NOT request that the sender close the
-control stream. If either control stream is closed at any point, this MUST be treated as a connection error of type
-SIP3_CLOSED_CRITICAL_STREAM.
-
-Connection errors are described in {{error-handling}}.
-
-Because the contents of the control stream are used to manage the behaviour of other streams, user agents SHOULD provide
-enough flow-control credit to keep the peer's control stream from becoming blocked.
-
 ## Bidirectional Streams {#bidirectional-streams}
 
 Bidirectional QUIC streams are used for SIP requests and responses. These streams are referred to as request streams.
@@ -674,13 +654,33 @@ error code. The recipient MUST NOT consider unknown stream types to be a connect
 Since certain stream types can affect connection state, a recipient user agent SHOULD NOT discard data from incoming
 unidirectional streams prior to reading the stream type.
 
-Implementations SHOULD wait for the reception of a `SETTINGS` frame describing what stream types their peer user agent
+Implementations SHOULD wait for the reception of a SETTINGS frame describing what stream types their peer user agent
 supports before sending streams of that type. Implementations MAY send stream types that do not modify the state or
 semantics of existing protocol components before it is known whether the peer user agent supports them, but MUST NOT
 send stream types that do (such as QPACK).
 
 A sender can close or reset a unidirectional stream unless otherwise specified. A receiver MUST tolerate unidirectional
 streams being closed or reset prior to the reception of the unidirectional stream header.
+
+### Control Streams {#control-streams}
+
+A control stream is indicated by a stream type of `0x00`. Data on this stream consists of SIP/3 frames, as defined in
+{{framing-layer}}.
+
+Each SIP/3 user agent MUST initiate a single control stream at the beginning of the connection and send its `SETTINGS`
+frame as the first frame on this stream. If the first frame of the control stream is any other frame type, this MUST be 
+treated as a connection error of type SIP3_MISSING_SETTINGS. Only one control stream is permitted per user agent; receipt
+of a second stream claiming to be a control stream MUST be treated as a connection error of type
+SIP3_STREAM_CREATION_ERROR.
+
+The control stream MUST NOT be closed by the sender, and the receiver MUST NOT request that the sender close the
+control stream. If either control stream is closed at any point, this MUST be treated as a connection error of type
+SIP3_CLOSED_CRITICAL_STREAM.
+
+Connection errors are described in {{error-handling}}.
+
+Because the contents of the control stream are used to manage the behaviour of other streams, user agents SHOULD provide
+enough flow-control credit to keep the peer's control stream from becoming blocked.
 
 # SIP Methods {#methods}
 
@@ -700,12 +700,12 @@ document, so I invite feedback on any other methods that may be problematic.
 SIP/3 frames are carried on QUIC streams, as described in {{stream-mapping}}. SIP/3 defines a single stream type: the
 Request Stream. This section describes SIP/3 frame formats; see {{frame-types}} for an overview.
 
-| Frame      | Request Stream | Control Stream | Section            |
-|:-----------|:---------------|:---------------|:-------------------|
-| `DATA`     | Yes            | No             | {{data-frame}}     |
-| `HEADERS`  | Yes            | No             | {{headers-frame}}  |
-| `CANCEL`   | No             | Yes            | {{cancel-frame}}   |
-| `SETTINGS` | No             | Yes            | {{settings-frame}} |
+| Frame    | Request Stream | Control Stream | Section            |
+|:---------|:---------------|:---------------|:-------------------|
+| DATA     | Yes            | No             | {{data-frame}}     |
+| HEADERS  | Yes            | No             | {{headers-frame}}  |
+| CANCEL   | No             | Yes            | {{cancel-frame}}   |
+| SETTINGS | No             | Yes            | {{settings-frame}} |
 {: #frame-types "SIP/3 Frames"}
 
 *[DATA]: #data-frame
@@ -779,9 +779,9 @@ HEADERS Frame {
 ### CANCEL {#cancel-frame}
 
 The `CANCEL` frame (type=`0x02`) is only sent on a Control Stream and informs the receiver that its peer user agent
-does not it to do any further processing on the message carried by the associated bidirectional stream ID. If the
-receiver has already completed the processing for the message, sent the response and closed the sending end of the
-stream, it MUST disregard this frame.
+does not intend to do any further processing on the message carried by the associated bidirectional stream ID. If
+the receiver has already completed the processing for the message, sent the response and closed the sending end of
+the stream, it MUST disregard this frame.
 
 > **Author's Note:** Remove the length from this frame type as the stream ID field is self-describing.
 
@@ -807,7 +807,7 @@ each Control Stream by each peer user agent, and it MUST NOT be sent subsequentl
 second `SETTINGS` frame on the control stream, or any other stream, the user agent MUST respond with a connection
 error of type SIP3_FRAME_UNEXPECTED.
 
-`SETTINGS` parameters are not negotiated; they describe characteristics of the sending user agnet that can be used by
+`SETTINGS` parameters are not negotiated; they describe characteristics of the sending user agent that can be used by
 the receiving user agent. However, a negotiation can be implied by the use of `SETTINGS`: each user agent uses
 `SETTINGS` to advertise a set of supported values. Each user agent combines the two sets to conclude which choice will
 be used. `SETTINGS` does not provide a mechanism to identify when the choice takes effect.
@@ -917,15 +917,15 @@ SIP3_FRAME_UNEXPECTED (0x0306):
   {: anchor="SIP3_FRAME_UNEXPECTED"}
 
 SIP3_CANCEL_FRAME_CLOSED (0x0307):
-: A `CANCEL` frame was received that referenced an unknown stream ID.
+: A CANCEL frame was received that referenced an unknown stream ID.
   {: anchor="SIP3_CANCEL_FRAME_CLOSED"}
 
 SIP3_SETTINGS_ERROR (0x0309):
-: An endpoint detected an error in the payload of a `SETTINGS` frame.
+: An endpoint detected an error in the payload of a SETTINGS frame.
   {: anchor="SIP3_SETTINGS_ERROR"}
 
 SIP3_MISSING_SETTINGS (0x030a):
-: No `SETTINGS` frame was received at the beginning of the control stream.
+: No SETTINGS frame was received at the beginning of the control stream.
   {: anchor="SIP3_MISSING_SETTINGS"}
 
 SIP3_REQUEST_INCOMPLETE (0x030d):
@@ -987,7 +987,7 @@ codes ({{error-codes}}), or new stream types ({{stream-mapping}}).
 
 Implementations MUST ignore unknown or unsupported values in all extensible protocol elements. This means that any of
 these extension points can be safely used by extensions without prior arrangement or negotiation. However, where a
-known frame type is required to be in a specific location, such as the `SETTINGS` frame (see {{control-streams}}), an
+known frame type is required to be in a specific location, such as the SETTINGS frame (see {{control-streams}}), an
 unknown frame type does not satisfy that requirement and SHOULD be treated as an error.
 
 Extensions that could change the semantics of existing protocol components MUST be negotiated before being used. For
@@ -1142,13 +1142,13 @@ the frame that are conditionally present.
 
 The entries in {{fig-iana-frame-table}} are registered by this document.
 
-|:-------------|:-------|:-------------------|
-| Frame Type   | Value  | Specification      |
-|:-------------|:-------|:-------------------|
-| `DATA`       | `0x00` | {{data-frame}}     |
-| `HEADERS`    | `0x01` | {{headers-frame}}  |
-| `CANCEL`     | `0x02` | {{cancel-frame}}   |
-| `SETTINGS`   | `0x04` | {{settings-frame}} |
+|:-----------|:-------|:-------------------|
+| Frame Type | Value  | Specification      |
+|:-----------|:-------|:-------------------|
+| DATA       | `0x00` | {{data-frame}}     |
+| HEADERS    | `0x01` | {{headers-frame}}  |
+| CANCEL     | `0x02` | {{cancel-frame}}   |
+| SETTINGS   | `0x04` | {{settings-frame}} |
 {: #fig-iana-frame-table title="Initial SIP/3 Frame Types"}
 
 ### Settings Parameters {#iana-parameters}
