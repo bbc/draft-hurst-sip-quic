@@ -1,0 +1,266 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2022-09-25T00:19:03.829992+00:00",
+  "repo": "bbc/draft-hurst-sip-quic",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOH4qyYM4_gXGy",
+      "title": "Reviewed up to line 392.",
+      "url": "https://github.com/bbc/draft-hurst-sip-quic/pull/1",
+      "state": "MERGED",
+      "author": "rjb1000",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "(More to come from another branch...)",
+      "createdAt": "2022-09-23T15:02:36Z",
+      "updatedAt": "2022-09-23T15:25:50Z",
+      "baseRepository": "bbc/draft-hurst-sip-quic",
+      "baseRefName": "main",
+      "baseRefOid": "3402a52ddd364c6ce594a24b2dfd9b7e1d2aeb36",
+      "headRepository": null,
+      "headRefName": "patch-1",
+      "headRefOid": "7ba454ea38f0d3c4b734b220adb1fd52600de30d",
+      "closedAt": "2022-09-23T15:25:50Z",
+      "mergedAt": "2022-09-23T15:25:50Z",
+      "mergedBy": "samhurst",
+      "mergeCommit": {
+        "oid": "7520e0a416e59e84d42d924b72d66beb6469e95f"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDOH4qyYM4_gXaC",
+      "title": "Patch 2",
+      "url": "https://github.com/bbc/draft-hurst-sip-quic/pull/2",
+      "state": "MERGED",
+      "author": "rjb1000",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The remaining review.",
+      "createdAt": "2022-09-23T15:03:35Z",
+      "updatedAt": "2022-09-23T16:27:33Z",
+      "baseRepository": "bbc/draft-hurst-sip-quic",
+      "baseRefName": "main",
+      "baseRefOid": "7520e0a416e59e84d42d924b72d66beb6469e95f",
+      "headRepository": null,
+      "headRefName": "patch-2",
+      "headRefOid": "ac3baf04e75aa7d44118461967debf2a86a94825",
+      "closedAt": "2022-09-23T16:27:33Z",
+      "mergedAt": "2022-09-23T16:27:33Z",
+      "mergedBy": "samhurst",
+      "mergeCommit": {
+        "oid": "fbe9c05fd70096aa1b76349715efc77dbfc0c270"
+      },
+      "comments": [
+        {
+          "author": "rjb1000",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Sorry for breaking your markdown magic. Suggest you undo.",
+          "createdAt": "2022-09-23T16:10:22Z",
+          "updatedAt": "2022-09-23T16:10:22Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOH4qyYM5CrY0Y",
+          "commit": {
+            "abbreviatedOid": "389b136"
+          },
+          "author": "samhurst",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Lots of comments but most of them are for the backticks around frame names which breaks some of the markdown magic.",
+          "createdAt": "2022-09-23T15:29:53Z",
+          "updatedAt": "2022-09-23T16:01:18Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "By putting this in backticks, you stop the automatic hyperlinking of the HEADERS section in the text, so I'm inclined to reject this change.",
+              "createdAt": "2022-09-23T15:29:53Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 29,
+              "body": "No backticks on the frame names to allow the hyperlink to the correct section to work automatically (see the markdown magic at the bottom of #framing-layer)",
+              "createdAt": "2022-09-23T15:31:06Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I don't think we can just introduce this without explicitly saying that it's copied from the HTTP/3 space, as the QPACK document is very explicit about this being a H3 setting, and I don't want to include all available H3 settings and want to be more selective. So I think this section should include the HTTP/3 reference.",
+              "createdAt": "2022-09-23T15:34:40Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 255,
+              "body": "Stream types only exist for unidirectional streams, so this should really stay as a subheading under the unidirectional streams, as it is in the H3 spec.",
+              "createdAt": "2022-09-23T15:41:16Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 316,
+              "body": "Again, no backticks here",
+              "createdAt": "2022-09-23T15:45:13Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 351,
+              "body": "For reference, backticks are fine here because it's referring to the frame in another document and as far as I can tell, the markdown magic doesn't work cross-document.",
+              "createdAt": "2022-09-23T15:45:58Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 376,
+              "body": "Backticks to be removed",
+              "createdAt": "2022-09-23T15:46:58Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 412,
+              "body": "\"that its peer user agent does not it to do\" ?\r\n\r\n\"does not wish it to do\" perhaps?",
+              "createdAt": "2022-09-23T15:48:46Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 442,
+              "body": "\"agnet\" typo",
+              "createdAt": "2022-09-23T15:49:54Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 510,
+              "body": "Backticks again",
+              "createdAt": "2022-09-23T15:58:56Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 528,
+              "body": "Backticks",
+              "createdAt": "2022-09-23T15:59:13Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            },
+            {
+              "originalPosition": 638,
+              "body": "Backticks again",
+              "createdAt": "2022-09-23T16:00:37Z",
+              "updatedAt": "2022-09-23T16:01:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOH4qyYM5Crk7I",
+          "commit": {
+            "abbreviatedOid": "389b136"
+          },
+          "author": "rjb1000",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-23T16:08:12Z",
+          "updatedAt": "2022-09-23T16:08:13Z",
+          "comments": [
+            {
+              "originalPosition": 255,
+              "body": "OK.",
+              "createdAt": "2022-09-23T16:08:12Z",
+              "updatedAt": "2022-09-23T16:08:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOH4qyYM5CrlDs",
+          "commit": {
+            "abbreviatedOid": "389b136"
+          },
+          "author": "rjb1000",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-23T16:08:40Z",
+          "updatedAt": "2022-09-23T16:08:40Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "That's unfortunate, but I can live with it.",
+              "createdAt": "2022-09-23T16:08:40Z",
+              "updatedAt": "2022-09-23T16:08:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOH4qyYM5CrlOm",
+          "commit": {
+            "abbreviatedOid": "389b136"
+          },
+          "author": "rjb1000",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-23T16:09:17Z",
+          "updatedAt": "2022-09-23T16:09:17Z",
+          "comments": [
+            {
+              "originalPosition": 412,
+              "body": "Sorry. \"it\" was meant to read \"intend\".",
+              "createdAt": "2022-09-23T16:09:17Z",
+              "updatedAt": "2022-09-23T16:09:17Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
