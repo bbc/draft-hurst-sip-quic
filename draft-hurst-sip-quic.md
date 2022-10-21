@@ -566,6 +566,11 @@ that forward SIP/3 messages to SIP sessions of an earlier versions are responsib
 the `CSeq` header field for those messages, and for mapping those values back to the correct SIP/3 request stream in
 the opposite direction.
 
+## Connection Keep-Alive {#keep-alive}
+
+SIP/3 endpoints may keep their QUIC connection active and open by sending periodic `PING` frames to defer the QUIC idle
+timeout as described in {{Section 10.1.2 of QUIC-TRANSPORT}}.
+
 # Compatibility With Earlier SIP Versions {#compatibility}
 
 ~~~
