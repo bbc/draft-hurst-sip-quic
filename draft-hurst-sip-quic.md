@@ -395,7 +395,7 @@ A UAS MUST NOT use the SIP3_REQUEST_REJECTED error code for requests that were p
 abandons a response after partial processing, it SHOULD abort its response stream with the error code
 SIP3_REQUEST_CANCELLED.
 
-### Malformed requests and responses {#malformed}
+### Malformed Requests And Responses {#malformed}
 
 A malformed request or response is one that is a sequence of syntactically valid SIP/3 frames but that is invalid due to:
 
@@ -529,7 +529,7 @@ Contact: "Mr. Watson" <sip:watson@example.com>;
 ~~~
 {: #fig-contact-version-extension-example title="Example usage of the \"v\" Contact header field parameter"}
 
-### Transaction sequence number {#cseq}
+### Transaction Sequence Number {#cseq}
 
 SIP/3 endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of SIP/3
 transactions is instead inferred from the QUIC stream identifier as described in {{stream-mapping}}. Intermediaries
@@ -1027,7 +1027,7 @@ new stream types will need to be defined. This document reserves the stream type
 the stream type mechanism will need to be extended to cover bidirectional streams, because this specification currently
 assumes that SIP/3 messages have exclusive use of the bidirectional streams.
 
-## Carriage of RTP in a QUIC Transport Session
+## Carriage Of RTP In A QUIC Transport Session
 
 Both {{QRT}} and {{RTP-over-QUIC}} define ways to carry RTP and RTCP messages over QUIC `DATAGRAM` frames. With SIP
 and SDP already closely aligned with RTP media sessions, adapting SIP/3 to coexist within the same QUIC transport
@@ -1043,7 +1043,7 @@ also describes a different set of SDP attributes to perform a similar task.
 Future versions of this document or the above documents may specify a mechanism for signalling that a given media
 session will be carried in the same QUIC connection as the SIP/3 session.
 
-## Carriage of non-RTP media streaming protocols in a QUIC Transport Session
+## Carriage Of Non-RTP Media Streaming Protocols In A QUIC Transport Session
 
 {{RUSH}} does not specify a means to discover the presence of a RUSH streaming session, nor a mechanism for negotiating
 the encoding parameters of media that is being exchanged. RUSH has two modes of operation: Normal and Multi Stream
@@ -1073,7 +1073,7 @@ TODO Security
 This document registers a new ALPN protocol IDs ({{iana-alpn}}) and creates new registries that manage the assignment
 of code points in SIP/3 ({{iana-registries}}).
 
-## Registration of SIP Identification Strings {#iana-alpn}
+## Registration Of SIP Identification Strings {#iana-alpn}
 
 This document creates a new registration of SIP/3 in the "TLS Application-Layer Protocol Negotiation (ALPN) Protocol
 IDs" registry established in {{?RFC7301}}.
