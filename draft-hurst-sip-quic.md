@@ -608,8 +608,10 @@ SIP-over-QUIC SHOULD be used if:
 In {{SIP2.0}}, messages pertaining to a given SIP transaction are identified as such using the branch parameter on the
 `Via:` header fields carried in requests and responses. In SIP-over-QUIC, individual transactions are tracked using the
 QUIC streams that are used to carry them. SIP-over-QUIC endpoints MAY omit this parameter. For intermediaries converting
-between SIP-over-QUIC and other versions of SIP, these endpoints SHOULD insert missing branch parameters, which MAY
-simply be a textual representation of the stream IDs used.
+between SIP-over-QUIC and SIP sessions running over other transport protocols, these endpoints SHOULD insert missing
+branch parameters. To avoid leaking details of the QUIC transport connection, these converted branch parameters MUST NOT
+be textual representations of the stream IDs used to carry a given transactions, or any other representation that could
+be used to infer stream IDs that have been used in a given QUIC transport connection.
 
 ## Dialogs
 
@@ -1102,7 +1104,15 @@ media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably is
 
 # Security Considerations
 
-TODO Security
+The security considerations of SIP-over-QUIC should be comparable to those of {{SIP2.0}} and {{HTTP3}}.
+
+SIP-over-QUIC relies on QUIC, which itself relies on TLS 1.3 and thus supports by default the protections against
+downgrade attacks described in {{!BCP195}}. QUIC-specific issues and their mitigations are described in
+{{Section 21 of QUIC-TRANSPORT}}.
+
+{{transactions}} gives specific guidance on the conversion of transactions between SIP-over-QUIC and carriage of SIP
+over other transport protocols which make use of the branch parameter, in order to avoid leaking details of the
+underlying QUIC transport connection.
 
 # IANA Considerations
 
