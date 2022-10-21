@@ -4,8 +4,8 @@
 
 Session Initiation Protocol Core                                S. Hurst
 Internet-Draft                                BBC Research & Development
-Intended status: Experimental                          23 September 2022
-Expires: 27 March 2023
+Intended status: Experimental                            21 October 2022
+Expires: 24 April 2023
 
 
               SIPv3: Session Initiation Protocol over QUIC
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 March 2023.
+   This Internet-Draft will expire on 24 April 2023.
 
 Copyright Notice
 
@@ -83,12 +83,15 @@ Table of Contents
      3.1.  QUIC Clients and Servers
      3.2.  SIP Transaction Framing
        3.2.1.  Request Cancellation and Rejection
-       3.2.2.  Malformed requests and responses
+       3.2.2.  Malformed Requests And Responses
      3.3.  SIP Header Fields
        3.3.1.  SIP/3 Header Compression
        3.3.2.  SIP Control Data
-       3.3.3.  Contact Header Field Version Extension
-       3.3.4.  Transaction sequence number
+       3.3.3.  Via Transport Parameter
+       3.3.4.  SIP URI Transport Parameter
+       3.3.5.  Contact Header Field Version Extension
+       3.3.6.  Transaction Sequence Number
+     3.4.  Connection Keep-Alive
    4.  Compatibility With Earlier SIP Versions
      4.1.  Transactions
      4.2.  Dialogs
@@ -108,12 +111,12 @@ Table of Contents
      8.1.  SIP/3 Error Codes
    9.  Extensions to SIP/3
    10. Future Carriage of Media Sessions
-     10.1.  Carriage of RTP in a QUIC Transport Session
-     10.2.  Carriage of non-RTP media streaming protocols in a QUIC
+     10.1.  Carriage Of RTP In A QUIC Transport Session
+     10.2.  Carriage Of Non-RTP Media Streaming Protocols In A QUIC
             Transport Session
    11. Security Considerations
    12. IANA Considerations
-     12.1.  Registration of SIP Identification Strings
+     12.1.  Registration Of SIP Identification Strings
      12.2.  New Registries
        12.2.1.  Frame Types
        12.2.2.  Settings Parameters
@@ -264,6 +267,12 @@ Table of Contents
    extension unless an alternative mechanism to indicate the target host
    is used.
 
+   SIP/3 messages are carried in reliable QUIC streams; therefore, the
+   SIP/3 protocol defined by this document is a reliable SIP transport.
+   Thus, client and server transactions using SIP/3 for transport MUST
+   follow the procedures and timer values for reliable transports as
+   defined in [SIP2.0].
+
 2.1.1.  Draft Version Identification
 
       *RFC Editor's Note:* Please remove this section prior to
@@ -404,7 +413,7 @@ Table of Contents
    response after partial processing, it SHOULD abort its response
    stream with the error code SIP3_REQUEST_CANCELLED.
 
-3.2.2.  Malformed requests and responses
+3.2.2.  Malformed Requests And Responses
 
    A malformed request or response is one that is a sequence of
    syntactically valid SIP/3 frames but that is invalid due to:
@@ -560,7 +569,33 @@ Table of Contents
    Reason-Phrase can be inferred from the list of reason phrases
    accompanying the status codes listed in Section 21 of [SIP2.0].
 
-3.3.3.  Contact Header Field Version Extension
+3.3.3.  Via Transport Parameter
+
+   The Via header field in SIP messages carry a transport protocol
+   identifier.  This document defines the value "QUIC" to be used for
+   SIP/3 requests over QUIC transport.
+
+   The updated ABNF (Augmented Backus-Naur Form) [RFC5234] for this
+   parameter is the following:
+
+   transport  =/  "QUIC"
+
+   A full example Via: header is as follows:
+
+   Via: SIP/3/QUIC wxp6O3dffes2.example.com;branch=z9hG4bKXG1gNkhgOiNR
+
+3.3.4.  SIP URI Transport Parameter
+
+   This document defines the value "quic" as the transport parameter
+   value for a SIP/3 URI [RFC3986] where the transport mechanism used
+   for sending SIP messages will be QUIC transport, extending the
+   parameter names defined in Section 19.1.1 of [SIP2.0].
+
+   The updated ABNF for this parameter is the following:
+
+   transport-param  =/  "transport=" "quic"
+
+3.3.5.  Contact Header Field Version Extension
 
    This document defines an additional Contact header field parameter
    "v".  The "v" parameter carries a comma-separated list of SIP
@@ -583,7 +618,7 @@ Table of Contents
 
      Figure 2: Example usage of the "v" Contact header field parameter
 
-3.3.4.  Transaction sequence number
+3.3.6.  Transaction Sequence Number
 
    SIP/3 endpoints MUST NOT use the CSeq header field (see Section 20.16
    of [SIP2.0]).  The correct order of SIP/3 transactions is instead
@@ -593,6 +628,12 @@ Table of Contents
    the CSeq header field for those messages, and for mapping those
    values back to the correct SIP/3 request stream in the opposite
    direction.
+
+3.4.  Connection Keep-Alive
+
+   SIP/3 endpoints may keep their QUIC connection active and open by
+   sending periodic PING frames to defer the QUIC idle timeout as
+   described in Section 10.1.2 of [QUIC-TRANSPORT].
 
 4.  Compatibility With Earlier SIP Versions
 
@@ -612,9 +653,10 @@ Table of Contents
    identified as "Proxy A" all support SIP/3, but the proxy server
    identified as "Proxy B" only supports SIP/2.0 over TCP/TLS and UDP.
    When Proxy A attempts to connect to Proxy B, it may have previous
-   knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV
-   record [RFC2782] may have indicated that the server only supports
-   _sips services over TCP, thereby implying SIP/2.0.
+   knowledge of the lack of support for SIP/3 on Proxy B, or either of
+   the DNS SRV record [RFC2782] or DNS service binding record [DNS-SVCB]
+   may have indicated that the server only supports SIPS services over
+   TCP, thereby implying SIP/2.0.
 
    If Proxy B only supports unencrypted SIP over UDP, then Proxy A MUST
    NOT forward messages from the secure SIP/3 over an unencrypted
@@ -630,8 +672,11 @@ Table of Contents
    *  The DNS SRV record for the SIPS URI indicates that the invitee
       supports SIPS over UDP, or
 
+   *  The DNS service binding record for the SIPS URI indicates the
+      sips/3 ALPN token as described in Section 2.1, or
+
    *  The Contact: header field carries the "v" parameter described in
-      Section 3.3.3 and indicates a preference for SIP/3.
+      Section 3.3.5 and indicates a preference for SIP/3.
 
 4.1.  Transactions
 
@@ -1127,7 +1172,7 @@ Table of Contents
    streams, because this specification currently assumes that SIP/3
    messages have exclusive use of the bidirectional streams.
 
-10.1.  Carriage of RTP in a QUIC Transport Session
+10.1.  Carriage Of RTP In A QUIC Transport Session
 
    Both [QRT] and [RTP-over-QUIC] define ways to carry RTP and RTCP
    messages over QUIC DATAGRAM frames.  With SIP and SDP already closely
@@ -1151,7 +1196,7 @@ Table of Contents
    mechanism for signalling that a given media session will be carried
    in the same QUIC connection as the SIP/3 session.
 
-10.2.  Carriage of non-RTP media streaming protocols in a QUIC Transport
+10.2.  Carriage Of Non-RTP Media Streaming Protocols In A QUIC Transport
        Session
 
    [RUSH] does not specify a means to discover the presence of a RUSH
@@ -1192,7 +1237,7 @@ Table of Contents
    creates new registries that manage the assignment of code points in
    SIP/3 (Section 12.2).
 
-12.1.  Registration of SIP Identification Strings
+12.1.  Registration Of SIP Identification Strings
 
    This document creates a new registration of SIP/3 in the "TLS
    Application-Layer Protocol Negotiation (ALPN) Protocol IDs" registry
@@ -1492,6 +1537,11 @@ Table of Contents
               DOI 10.17487/RFC3264, June 2002,
               <https://www.rfc-editor.org/rfc/rfc3264>.
 
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <https://www.rfc-editor.org/rfc/rfc3986>.
+
    [RFC7639]  Hutton, A., Uberti, J., and M. Thomson, "The ALPN HTTP
               Header Field", RFC 7639, DOI 10.17487/RFC7639, August
               2015, <https://www.rfc-editor.org/rfc/rfc7639>.
@@ -1517,6 +1567,13 @@ Table of Contents
               <https://www.rfc-editor.org/rfc/rfc3261>.
 
 13.2.  Informative References
+
+   [DNS-SVCB] Schwartz, B., Bishop, M., and E. Nygren, "Service binding
+              and parameter specification via the DNS (DNS SVCB and
+              HTTPS RRs)", Work in Progress, Internet-Draft, draft-ietf-
+              dnsop-svcb-https-11,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-
+              svcb-https-11>.
 
    [HTTP1.1]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
               Ed., "HTTP/1.1", STD 99, RFC 9112, DOI 10.17487/RFC9112,
@@ -1551,6 +1608,11 @@ Table of Contents
               specifying the location of services (DNS SRV)", RFC 2782,
               DOI 10.17487/RFC2782, February 2000,
               <https://www.rfc-editor.org/rfc/rfc2782>.
+
+   [RFC5234]  Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", STD 68, RFC 5234,
+              DOI 10.17487/RFC5234, January 2008,
+              <https://www.rfc-editor.org/rfc/rfc5234>.
 
    [RFC7301]  Friedl, S., Popov, A., Langley, A., and E. Stephan,
               "Transport Layer Security (TLS) Application-Layer Protocol
