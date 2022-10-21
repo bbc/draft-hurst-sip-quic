@@ -506,6 +506,35 @@ implicitly have a protocol version of "3.0". If it is required, for example to p
 received status code, the `Reason-Phrase` can be inferred from the list of reason phrases accompanying the status codes
 listed in {{Section 21 of SIP2.0}}.
 
+### Via Transport Parameter
+
+The Via header field in SIP messages carry a transport protocol identifier. This document defines the value "QUIC" to
+be used for SIP/3 requests over QUIC transport.
+
+The updated ABNF (Augmented Backus-Naur Form) {{?RFC5234}} for this parameter is the following:
+
+~~~
+transport  =/  "QUIC"
+~~~
+
+A full example `Via:` header is as follows:
+
+~~~
+Via: SIP/3/QUIC wxp6O3dffes2.example.com;branch=z9hG4bKXG1gNkhgOiNR
+~~~
+
+### SIP URI Transport Parameter
+
+This document defines the value "quic" as the transport parameter value for a SIP/3 URI {{!RFC3986}} where the
+transport mechanism used for sending SIP messages will be QUIC transport, extending the parameter names defined in
+{{Section 19.1.1 of SIP2.0}}.
+
+The updated ABNF for this parameter is the following:
+
+~~~
+transport-param  =/  "transport=" "quic"
+~~~
+
 ### Contact Header Field Version Extension {#contact-extension}
 
 This document defines an additional `Contact` header field parameter "v". The "v" parameter carries a comma-separated
