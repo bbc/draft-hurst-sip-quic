@@ -282,6 +282,10 @@ indicate the target host to the server during the TLS handshake. If the target d
 identified by a domain name {{?RFC8499}}, clients MUST send the Server Name Indication ({{?SNI=RFC6066}}) TLS extension
 unless an alternative mechanism to indicate the target host is used.
 
+SIP/3 messages are carried in reliable QUIC streams; therefore, the SIP/3 protocol defined by this document is a
+reliable SIP transport. Thus, client and server transactions using SIP/3 for transport MUST follow the procedures and
+timer values for reliable transports as defined in {{SIP2.0}}.
+
 ### Draft Version Identification {#draft-version-indication}
 
 > **RFC Editor's Note:** Please remove this section prior to publication of a final version of this document.
