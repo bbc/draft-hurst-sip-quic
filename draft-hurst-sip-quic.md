@@ -154,6 +154,24 @@ informative:
         ins: V. Vasiliev
         name: Victor Vasiliev
         org: Google
+  DNS-SVCB:
+    title: "Service binding and parameter specification via the DNS (DNS SVCB and HTTPS RRs)"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-ietf-dnsop-svcb-https-11
+    author:
+      -
+        ins: B. Schwartz
+        name: Ben Schwartz
+        org: Google
+      -
+        ins: M. Bishop
+        name: Mike Bishop
+        org: Akamai Technologies
+      -
+        ins: E. Nygren
+        name: Erik Nygren
+        org: Akamai Technologies
 
 
 --- abstract
@@ -588,8 +606,9 @@ timeout as described in {{Section 10.1.2 of QUIC-TRANSPORT}}.
 
 In the above example, the Initiator, Invitee and the proxy server identified as "Proxy A" all support SIP/3, but the
 proxy server identified as "Proxy B" only supports SIP/2.0 over TCP/TLS and UDP. When Proxy A attempts to connect to
-Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or the DNS SRV record {{?RFC2782}}
-may have indicated that the server only supports `_sips` services over TCP, thereby implying SIP/2.0.
+Proxy B, it may have previous knowledge of the lack of support for SIP/3 on Proxy B, or either of the DNS SRV record
+{{?RFC2782}} or DNS service binding record {{DNS-SVCB}} may have indicated that the server only supports SIPS services
+over TCP, thereby implying SIP/2.0.
 
 If Proxy B only supports unencrypted SIP over UDP, then Proxy A MUST NOT forward messages from the secure SIP/3 over
 an unencrypted protocol because this could constitute a downgrade attack. Instead, if the designated Invitee cannot be
@@ -600,6 +619,8 @@ When initiating direct communication with an invitee after the conclusion of the
 SHOULD be used if:
 
 * The DNS SRV record for the SIPS URI indicates that the invitee supports SIPS over UDP, or
+* The DNS service binding record for the SIPS URI indicates the `sips/3` ALPN token as described in {{quic-transport}},
+or
 * The `Contact:` header field carries the "v" parameter described in {{contact-extension}} and indicates a
 preference for SIP/3.
 
