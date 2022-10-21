@@ -605,10 +605,10 @@ Table of Contents
    Section 20.16 of [SIP2.0]).  The correct order of SIP-over-QUIC
    transactions is instead inferred from the QUIC stream identifier as
    described in Section 5.  Intermediaries that forward SIP-over-QUIC
-   messages to SIP sessions of an earlier versions are responsible for
-   defining the value carried in the CSeq header field for those
-   messages, and for mapping those values back to the correct SIP-over-
-   QUIC request stream in the opposite direction.
+   messages to SIP sessions running over other transports are
+   responsible for defining the value carried in the CSeq header field
+   for those messages, and for mapping those values back to the correct
+   SIP-over-QUIC request stream in the opposite direction.
 
 3.4.  Connection Keep-Alive
 
@@ -621,14 +621,14 @@ Table of Contents
   +-----------+          +-------+         +-------+         +---------+
   |           |          |       |         |       |         |         |
   |           <=SIP-QUIC=> Proxy <-SIP/2.0-> Proxy <-SIP/2.0->         |
-  |           |          |   A   |         |   B   |         |         |
+  |           |          |   A   |(TCP/UDP)|   B   |(TCP/UDP)|         |
   | Initiator |          +-------+         +-------+         | Invitee |
   |   (UAC)   |                                              |  (UAS)  |
   |           <==================SIP-QUIC====================>         |
   |           |                                              |         |
   +-----------+                                              +---------+
 
-               Figure 1: Example showing mixed SIP versions
+              Figure 1: Example showing mixed SIP transports
 
    In the above example, the Initiator, Invitee and the proxy server
    identified as "Proxy A" all support SIP-over-QUIC, but the proxy
@@ -666,10 +666,13 @@ Table of Contents
    fields carried in requests and responses.  In SIP-over-QUIC,
    individual transactions are tracked using the QUIC streams that are
    used to carry them.  SIP-over-QUIC endpoints MAY omit this parameter.
-   For intermediaries converting between SIP-over-QUIC and other
-   versions of SIP, these endpoints SHOULD insert missing branch
-   parameters, which MAY simply be a textual representation of the
-   stream IDs used.
+   For intermediaries converting between SIP-over-QUIC and SIP sessions
+   running over other transport protocols, these endpoints SHOULD insert
+   missing branch parameters.  To avoid leaking details of the QUIC
+   transport connection, these converted branch parameters MUST NOT be
+   textual representations of the stream IDs used to carry a given
+   transactions, or any other representation that could be used to infer
+   stream IDs that have been used in a given QUIC transport connection.
 
 4.2.  Dialogs
 
@@ -704,7 +707,7 @@ Table of Contents
    are not required.  User agents MUST NOT send the CSeq header field in
    requests or responses because the messages are already associated
    with a QUIC stream.  Intermediaries that convert SIP-over-QUIC to
-   SIP/2.0 and earlier versions when forwarding messages are responsible
+   other transport protocols when forwarding messages are responsible
    for handing the mapping of the CSeq header field to individual
    transactions.
 
@@ -806,8 +809,8 @@ Table of Contents
 6.  SIP Methods
 
    The REGISTER, INVITE, ACK and BYE methods as described in [SIP2.0]
-   continue to operate in SIP-over-QUIC as they did in earlier versions
-   of the protocol.
+   continue to operate in SIP-over-QUIC as they do in SIP running over
+   other transport protocols.
 
    The CANCEL method MUST NOT be used in SIP-over-QUIC.  If a SIP-over-
    QUIC request needs to be cancelled, the CANCEL frame SHOULD be used
@@ -1220,7 +1223,18 @@ Table of Contents
 
 11.  Security Considerations
 
-   TODO Security
+   The security considerations of SIP-over-QUIC should be comparable to
+   those of [SIP2.0] and [HTTP3].
+
+   SIP-over-QUIC relies on QUIC, which itself relies on TLS 1.3 and thus
+   supports by default the protections against downgrade attacks
+   described in [BCP195].  QUIC-specific issues and their mitigations
+   are described in Section 21 of [QUIC-TRANSPORT].
+
+   Section 4.1 gives specific guidance on the conversion of transactions
+   between SIP-over-QUIC and carriage of SIP over other transport
+   protocols which make use of the branch parameter, in order to avoid
+   leaking details of the underlying QUIC transport connection.
 
 12.  IANA Considerations
 
@@ -1493,6 +1507,16 @@ Table of Contents
 13.  References
 
 13.1.  Normative References
+
+   [BCP195]   Sheffer, Y., Holz, R., and P. Saint-Andre,
+              "Recommendations for Secure Use of Transport Layer
+              Security (TLS) and Datagram Transport Layer Security
+              (DTLS)", BCP 195, RFC 7525, May 2015.
+
+              Moriarty, K. and S. Farrell, "Deprecating TLS 1.0 and TLS
+              1.1", BCP 195, RFC 8996, March 2021.
+
+              <https://www.rfc-editor.org/info/bcp195>
 
    [HTTP-SEMANTICS]
               Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,

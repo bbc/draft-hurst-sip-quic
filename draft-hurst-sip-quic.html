@@ -1802,9 +1802,9 @@ transport-param  =/  "transport=" "quic"
           </h4>
 <p id="section-3.3.5-1">SIP-over-QUIC endpoints <span class="bcp14">MUST NOT</span> use the <code>CSeq</code> header field (see <span><a href="https://rfc-editor.org/rfc/rfc3261#section-20.16" class="relref">Section 20.16</a> of [<a href="#SIP2.0" class="cite xref">SIP2.0</a>]</span>). The correct order of
 SIP-over-QUIC transactions is instead inferred from the QUIC stream identifier as described in <a href="#stream-mapping" class="auto internal xref">Section 5</a>.
-Intermediaries that forward SIP-over-QUIC messages to SIP sessions of an earlier versions are responsible for defining
-the value carried in the <code>CSeq</code> header field for those messages, and for mapping those values back to the correct
-SIP-over-QUIC request stream in the opposite direction.<a href="#section-3.3.5-1" class="pilcrow">¶</a></p>
+Intermediaries that forward SIP-over-QUIC messages to SIP sessions running over other transports are responsible for
+defining the value carried in the <code>CSeq</code> header field for those messages, and for mapping those values back to the
+correct SIP-over-QUIC request stream in the opposite direction.<a href="#section-3.3.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1825,14 +1825,14 @@ QUIC idle timeout as described in <span><a href="https://rfc-editor.org/rfc/rfc9
       <h2 id="name-compatibility-with-earlier-">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-compatibility-with-earlier-" class="section-name selfRef">Compatibility With Earlier SIP Versions</a>
       </h2>
-<span id="name-example-showing-mixed-sip-v"></span><div id="fig-mixed-sip-versions">
+<span id="name-example-showing-mixed-sip-t"></span><div id="fig-mixed-sip-transports">
 <figure id="figure-1">
         <div class="alignLeft art-text artwork" id="section-4-1.1">
 <pre>
 +-----------+          +-------+         +-------+         +---------+
 |           |          |       |         |       |         |         |
 |           &lt;=SIP-QUIC=&gt; Proxy &lt;-SIP/2.0-&gt; Proxy &lt;-SIP/2.0-&gt;         |
-|           |          |   A   |         |   B   |         |         |
+|           |          |   A   |(TCP/UDP)|   B   |(TCP/UDP)|         |
 | Initiator |          +-------+         +-------+         | Invitee |
 |   (UAC)   |                                              |  (UAS)  |
 |           &lt;==================SIP-QUIC====================&gt;         |
@@ -1841,7 +1841,7 @@ QUIC idle timeout as described in <span><a href="https://rfc-editor.org/rfc/rfc9
 </pre>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
-<a href="#name-example-showing-mixed-sip-v" class="selfRef">Example showing mixed SIP versions</a>
+<a href="#name-example-showing-mixed-sip-t" class="selfRef">Example showing mixed SIP transports</a>
         </figcaption></figure>
 </div>
 <p id="section-4-2">In the above example, the Initiator, Invitee and the proxy server identified as "Proxy A" all support SIP-over-QUIC, but
@@ -1873,8 +1873,10 @@ SIP-over-QUIC <span class="bcp14">SHOULD</span> be used if:<a href="#section-4-4
 <p id="section-4.1-1">In <span>[<a href="#SIP2.0" class="cite xref">SIP2.0</a>]</span>, messages pertaining to a given SIP transaction are identified as such using the branch parameter on the
 <code>Via:</code> header fields carried in requests and responses. In SIP-over-QUIC, individual transactions are tracked using the
 QUIC streams that are used to carry them. SIP-over-QUIC endpoints <span class="bcp14">MAY</span> omit this parameter. For intermediaries converting
-between SIP-over-QUIC and other versions of SIP, these endpoints <span class="bcp14">SHOULD</span> insert missing branch parameters, which <span class="bcp14">MAY</span>
-simply be a textual representation of the stream IDs used.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+between SIP-over-QUIC and SIP sessions running over other transport protocols, these endpoints <span class="bcp14">SHOULD</span> insert missing
+branch parameters. To avoid leaking details of the QUIC transport connection, these converted branch parameters <span class="bcp14">MUST NOT</span>
+be textual representations of the stream IDs used to carry a given transactions, or any other representation that could
+be used to infer stream IDs that have been used in a given QUIC transport connection.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dialogs">
@@ -1905,8 +1907,8 @@ request and response messages; <a href="#unidirectional-streams" class="internal
 as request streams.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3"><span>[<a href="#SIP2.0" class="cite xref">SIP2.0</a>]</span> is designed to run over unreliable transports such as UDP. Since QUIC guarantees reliability, some of the
 features of SIP/2.0 are not required. User agents <span class="bcp14">MUST NOT</span> send the <code>CSeq</code> header field in requests or responses
-because the messages are already associated with a QUIC stream. Intermediaries that convert SIP-over-QUIC to SIP/2.0 and
-earlier versions when forwarding messages are responsible for handing the mapping of the <code>CSeq</code> header field to
+because the messages are already associated with a QUIC stream. Intermediaries that convert SIP-over-QUIC to other
+transport protocols when forwarding messages are responsible for handing the mapping of the <code>CSeq</code> header field to
 individual transactions.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5-4.1">
@@ -1996,7 +1998,7 @@ enough flow-control credit to keep the peer's <a href="#control-streams" class="
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-sip-methods" class="section-name selfRef">SIP Methods</a>
       </h2>
 <p id="section-6-1">The <code>REGISTER</code>, <code>INVITE</code>, <code>ACK</code> and <code>BYE</code> methods as described in <span>[<a href="#SIP2.0" class="cite xref">SIP2.0</a>]</span> continue to operate in SIP-over-QUIC as
-they did in earlier versions of the protocol.<a href="#section-6-1" class="pilcrow">¶</a></p>
+they do in SIP running over other transport protocols.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <p id="section-6-2">The <code>CANCEL</code> method <span class="bcp14">MUST NOT</span> be used in SIP-over-QUIC. If a SIP-over-QUIC request needs to be cancelled, the <code>CANCEL</code>
 frame <span class="bcp14">SHOULD</span> be used instead, or the stream for that request reset using the QUIC <code>RESET_STREAM</code> frame
 (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-19.4" class="relref">Section 19.4</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>). Note that SIP-over-QUIC messages in flight at the time may still arrive on a
@@ -2553,7 +2555,13 @@ media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably is
       <h2 id="name-security-considerations">
 <a href="#section-11" class="section-number selfRef">11. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-11-1">TODO Security<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-1">The security considerations of SIP-over-QUIC should be comparable to those of <span>[<a href="#SIP2.0" class="cite xref">SIP2.0</a>]</span> and <span>[<a href="#HTTP3" class="cite xref">HTTP3</a>]</span>.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">SIP-over-QUIC relies on QUIC, which itself relies on TLS 1.3 and thus supports by default the protections against
+downgrade attacks described in <span>[<a href="#BCP195" class="cite xref">BCP195</a>]</span>. QUIC-specific issues and their mitigations are described in
+<span><a href="https://rfc-editor.org/rfc/rfc9000#section-21" class="relref">Section 21</a> of [<a href="#QUIC-TRANSPORT" class="cite xref">QUIC-TRANSPORT</a>]</span>.<a href="#section-11-2" class="pilcrow">¶</a></p>
+<p id="section-11-3"><a href="#transactions" class="auto internal xref">Section 4.1</a> gives specific guidance on the conversion of transactions between SIP-over-QUIC and carriage of SIP
+over other transport protocols which make use of the branch parameter, in order to avoid leaking details of the
+underlying QUIC transport connection.<a href="#section-11-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -3144,6 +3152,15 @@ the following fields:<a href="#section-12.2.4-2" class="pilcrow">¶</a></p>
 <a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
+<dt id="BCP195">[BCP195]</dt>
+        <dd>
+<div class="refInstance" id="RFC7525">
+            <span class="refAuthor">Sheffer, Y.</span>, <span class="refAuthor">Holz, R.</span>, and <span class="refAuthor">P. Saint-Andre</span>, <span class="refTitle">"Recommendations for Secure Use of Transport Layer Security (TLS) and Datagram Transport Layer Security (DTLS)"</span>, <span class="seriesInfo">BCP 195</span>, <span class="seriesInfo">RFC 7525</span>, <time datetime="2015-05" class="refDate">May 2015</time>. </div>
+<div class="refInstance" id="RFC8996">
+            <span class="refAuthor">Moriarty, K.</span> and <span class="refAuthor">S. Farrell</span>, <span class="refTitle">"Deprecating TLS 1.0 and TLS 1.1"</span>, <span class="seriesInfo">BCP 195</span>, <span class="seriesInfo">RFC 8996</span>, <time datetime="2021-03" class="refDate">March 2021</time>. </div>
+<span>&lt;<a href="https://www.rfc-editor.org/info/bcp195">https://www.rfc-editor.org/info/bcp195</a>&gt;</span>
+</dd>
+<dd class="break"></dd>
 <dt id="HTTP-SEMANTICS">[HTTP-SEMANTICS]</dt>
         <dd>
 <span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
