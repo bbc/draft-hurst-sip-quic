@@ -559,9 +559,9 @@ transport-param  =/  "transport=" "quic"
 
 SIP-over-QUIC endpoints MUST NOT use the `CSeq` header field (see {{Section 20.16 of SIP2.0}}). The correct order of
 SIP-over-QUIC transactions is instead inferred from the QUIC stream identifier as described in {{stream-mapping}}.
-Intermediaries that forward SIP-over-QUIC messages to SIP sessions of an earlier versions are responsible for defining
-the value carried in the `CSeq` header field for those messages, and for mapping those values back to the correct
-SIP-over-QUIC request stream in the opposite direction.
+Intermediaries that forward SIP-over-QUIC messages to SIP sessions running over other transports are responsible for
+defining the value carried in the `CSeq` header field for those messages, and for mapping those values back to the
+correct SIP-over-QUIC request stream in the opposite direction.
 
 ## Connection Keep-Alive {#keep-alive}
 
@@ -574,14 +574,14 @@ QUIC idle timeout as described in {{Section 10.1.2 of QUIC-TRANSPORT}}.
 +-----------+          +-------+         +-------+         +---------+
 |           |          |       |         |       |         |         |
 |           <=SIP-QUIC=> Proxy <-SIP/2.0-> Proxy <-SIP/2.0->         |
-|           |          |   A   |         |   B   |         |         |
+|           |          |   A   |(TCP/UDP)|   B   |(TCP/UDP)|         |
 | Initiator |          +-------+         +-------+         | Invitee |
 |   (UAC)   |                                              |  (UAS)  |
 |           <==================SIP-QUIC====================>         |
 |           |                                              |         |
 +-----------+                                              +---------+
 ~~~
-{: #fig-mixed-sip-versions title="Example showing mixed SIP versions"}
+{: #fig-mixed-sip-transports title="Example showing mixed SIP transports"}
 
 In the above example, the Initiator, Invitee and the proxy server identified as "Proxy A" all support SIP-over-QUIC, but
 the proxy server identified as "Proxy B" only supports SIP/2.0 over TCP/TLS and UDP. When Proxy A attempts to connect to
@@ -632,8 +632,8 @@ as request streams.
 
 {{SIP2.0}} is designed to run over unreliable transports such as UDP. Since QUIC guarantees reliability, some of the
 features of SIP/2.0 are not required. User agents MUST NOT send the `CSeq` header field in requests or responses
-because the messages are already associated with a QUIC stream. Intermediaries that convert SIP-over-QUIC to SIP/2.0 and
-earlier versions when forwarding messages are responsible for handing the mapping of the `CSeq` header field to
+because the messages are already associated with a QUIC stream. Intermediaries that convert SIP-over-QUIC to other
+transport protocols when forwarding messages are responsible for handing the mapping of the `CSeq` header field to
 individual transactions.
 
 > **Author's note:** The author invites feedback as to whether the MUST NOT in relation to the `CSeq` header could be
@@ -723,7 +723,7 @@ enough flow-control credit to keep the peer's control stream from becoming block
 # SIP Methods {#methods}
 
 The `REGISTER`, `INVITE`, `ACK` and `BYE` methods as described in {{SIP2.0}} continue to operate in SIP-over-QUIC as
-they did in earlier versions of the protocol.
+they do in SIP running over other transport protocols.
 
 The `CANCEL` method MUST NOT be used in SIP-over-QUIC. If a SIP-over-QUIC request needs to be cancelled, the `CANCEL`
 frame SHOULD be used instead, or the stream for that request reset using the QUIC `RESET_STREAM` frame
