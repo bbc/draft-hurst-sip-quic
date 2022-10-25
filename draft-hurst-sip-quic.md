@@ -1095,8 +1095,10 @@ filling this gap. Warp uses QUIC unidirectional streams for sending media. Simil
 ISO-BMFF "segments", with each stream carrying a single segment. This can easily be accommodated by the media stream
 type reserved in {{unidirectional-streams}}.
 
-{{QuicR-Arch}} is openly hostile to the usage of SDP, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
-media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably isn't required.
+{{QuicR-Arch}} describes SDP as overly complicated, and {{QuicR-Proto}} defines the QuicR Manifest for advertising
+media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably isn't required. However, it is possible
+that trying to design this manifest mechanism from scratch is likely to require extra time and effort to develop, while
+SDP is a perfectly usable solution.
 
 # Security Considerations
 
