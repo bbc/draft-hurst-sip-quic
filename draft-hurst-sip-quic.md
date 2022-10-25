@@ -1112,6 +1112,9 @@ underlying QUIC transport connection.
 
 # IANA Considerations
 
+> **Author's Note**: This section of the document reflects future IANA registrations, and not current ones. The
+intention is for these registrations to occur once this Internet-Draft becomes an RFC.
+
 This document registers a new ALPN protocol IDs ({{iana-alpn}}) and creates new registries that manage the assignment
 of code points in SIP-over-QUIC ({{iana-registries}}).
 
@@ -1126,7 +1129,7 @@ The "sips/quic" string identifies SIP-over-QUIC:
   : SIP-over-QUIC
 
   Identification Sequence:
-  : 0x73 0x69 0x70 0x73 0x2F 0x33 ("sips/quic")
+  : 0x73 0x69 0x70 0x73 0x2F 0x71 0x75 0x69 0x63 ("sips/quic")
 
   Specification:
   : This document
