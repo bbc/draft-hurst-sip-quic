@@ -1043,7 +1043,7 @@ svg :is([stroke="fill"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Hurst</td>
-<td class="center">Expires 24 April 2023</td>
+<td class="center">Expires 28 April 2023</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,17 +1051,17 @@ svg :is([stroke="fill"], [fill^="#fff"]) {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">Session Initiation Protocol Core</dd>
+<dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
 <dd class="internet-draft">draft-hurst-sip-quic-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2022-10-21" class="published">21 October 2022</time>
+<time datetime="2022-10-25" class="published">25 October 2022</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Experimental</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2023-04-24">24 April 2023</time></dd>
+<dd class="expires"><time datetime="2023-04-28">28 April 2023</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1088,12 +1088,8 @@ fields carried in SIP transactions.<a href="#section-abstract-2" class="pilcrow"
 <p id="section-note.1-2">
         The latest revision of this draft can be found at <span><a href="https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html">https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html</a></span>.
         Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-hurst-sip-quic/">https://datatracker.ietf.org/doc/draft-hurst-sip-quic/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
-<p id="section-note.1-3">
-        Discussion of this document takes place on the
-        WG Individual Draft mailing list (<span><a href="mailto:WG@example.com">mailto:WG@example.com</a></span>),
-        which is archived at <span><a href="https://example.com/WG">https://example.com/WG</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
-<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
-        <span><a href="https://github.com/bbc/draft-hurst-sip-quic">https://github.com/bbc/draft-hurst-sip-quic</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/bbc/draft-hurst-sip-quic">https://github.com/bbc/draft-hurst-sip-quic</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1114,7 +1110,7 @@ fields carried in SIP transactions.<a href="#section-abstract-2" class="pilcrow"
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 April 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 28 April 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2515,8 +2511,8 @@ transport connection as RTP/RTCP would save at least one network round trip.<a h
 <ul class="normal">
 <li class="normal" id="section-10.1-2.1">QRT only defines a way to carry RTP and RTCP in QUIC <code>DATAGRAM</code> frames.<a href="#section-10.1-2.1" class="pilcrow">¶</a>
 </li>
-          <li class="normal" id="section-10.1-2.2">RTP-over-QUIC defines a way to carry RTP and RTCP over QUIC <code>STREAM</code> frames (without specifying whether they are
-to be sent over bidirectional or <a href="#unidirectional-streams" class="internal xref">unidirectional streams</a><span id="iref-unidirectional-stream-130" class="iref"></span>) as well as QUIC <code>DATAGRAM</code> frames.<a href="#section-10.1-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-10.1-2.2">RTP-over-QUIC defines a way to carry RTP and RTCP over unidirectional QUIC <code>STREAM</code> frames as well as QUIC <code>DATAGRAM</code>
+frames.<a href="#section-10.1-2.2" class="pilcrow">¶</a>
 </li>
         </ul>
 <p id="section-10.1-3">In addition, QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. <span>[<a href="#SDP-QUIC" class="cite xref">SDP-QUIC</a>]</span>
@@ -2535,17 +2531,19 @@ the encoding parameters of media that is being exchanged. RUSH has two modes of 
 modes. Normal mode, as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-kpugin-rush-01#section-4.3.1" class="relref">Section 4.3.1</a> of [<a href="#RUSH" class="cite xref">RUSH</a>]</span>, uses a single bidirectional QUIC stream to send and
 receive media streams. Multi Stream mode, as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-kpugin-rush-01#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#RUSH" class="cite xref">RUSH</a>]</span>, uses a bidirectional QUIC
 stream for each individual media frame. Bidirectional streams appear to be used in order to give error feedback, as
-opposed to having a separate <a href="#control-streams" class="internal xref">control stream</a><span id="iref-control-stream-131" class="iref"></span> for handling errors or using the QUIC transport error mechanism. If the
-stream type mechanism described in <a href="#unidirectional-streams" class="auto internal xref">Section 5.2</a> is expanded to cover <a href="#bidirectional-streams" class="internal xref">bidirectional streams</a><span id="iref-bidirectional-stream-132" class="iref"></span> as well, then
+opposed to having a separate <a href="#control-streams" class="internal xref">control stream</a><span id="iref-control-stream-130" class="iref"></span> for handling errors or using the QUIC transport error mechanism. If the
+stream type mechanism described in <a href="#unidirectional-streams" class="auto internal xref">Section 5.2</a> is expanded to cover <a href="#bidirectional-streams" class="internal xref">bidirectional streams</a><span id="iref-bidirectional-stream-131" class="iref"></span> as well, then
 SIP-over-QUIC could be used with RUSH.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2-2"><span>[<a href="#Warp" class="cite xref">Warp</a>]</span> specifies that sessions are established using HTTP/3 WebTransport (<span>[<a href="#WebTransH3" class="cite xref">WebTransH3</a>]</span>). However, to the author's
 best knowledge WebTransport does not yet contain any signalling or media negotiation similar to how WebRTC would use
 SDP offer/answer exchanges, so some form of session establishment mechanism like SIP-over-QUIC could be useful in
-filling this gap. Warp uses QUIC <a href="#unidirectional-streams" class="internal xref">unidirectional streams</a><span id="iref-unidirectional-stream-133" class="iref"></span> for sending media. Similar to MPEG-DASH, media is sent in
+filling this gap. Warp uses QUIC <a href="#unidirectional-streams" class="internal xref">unidirectional streams</a><span id="iref-unidirectional-stream-132" class="iref"></span> for sending media. Similar to MPEG-DASH, media is sent in
 ISO-BMFF "segments", with each stream carrying a single segment. This can easily be accommodated by the media stream
 type reserved in <a href="#unidirectional-streams" class="auto internal xref">Section 5.2</a>.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
-<p id="section-10.2-3"><span>[<a href="#QuicR-Arch" class="cite xref">QuicR-Arch</a>]</span> is openly hostile to the usage of SDP, and <span>[<a href="#QuicR-Proto" class="cite xref">QuicR-Proto</a>]</span> defines the QuicR Manifest for advertising
-media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably isn't required.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+<p id="section-10.2-3"><span>[<a href="#QuicR-Arch" class="cite xref">QuicR-Arch</a>]</span> describes SDP as overly complicated, and <span>[<a href="#QuicR-Proto" class="cite xref">QuicR-Proto</a>]</span> defines the QuicR Manifest for advertising
+media sessions and endpoint capabilities and, as such, SIP-over-QUIC probably isn't required. However, it is possible
+that trying to design this manifest mechanism from scratch is likely to require extra time and effort to develop, while
+SDP is a perfectly usable solution.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2569,8 +2567,14 @@ underlying QUIC transport connection.<a href="#section-11-3" class="pilcrow">¶<
       <h2 id="name-iana-considerations">
 <a href="#section-12" class="section-number selfRef">12. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-12-1">This document registers a new ALPN protocol IDs (<a href="#iana-alpn" class="auto internal xref">Section 12.1</a>) and creates new registries that manage the assignment
-of code points in SIP-over-QUIC (<a href="#iana-registries" class="auto internal xref">Section 12.2</a>).<a href="#section-12-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-12-1.1">
+          <p id="section-12-1.1.1"><strong>Author's Note</strong>: This section of the document reflects future IANA registrations, and not current ones. The
+intention is for these registrations to occur once this Internet-Draft becomes an RFC.<a href="#section-12-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-12-2">This document registers a new ALPN protocol IDs (<a href="#iana-alpn" class="auto internal xref">Section 12.1</a>) and creates new registries that manage the assignment
+of code points in SIP-over-QUIC (<a href="#iana-registries" class="auto internal xref">Section 12.2</a>).<a href="#section-12-2" class="pilcrow">¶</a></p>
 <div id="iana-alpn">
 <section id="section-12.1">
         <h3 id="name-registration-of-sip-identif">
@@ -2587,7 +2591,7 @@ Protocol IDs" registry established in <span>[<a href="#RFC7301" class="cite xref
           <dd class="break"></dd>
 <dt id="section-12.1-3.3">Identification Sequence:</dt>
           <dd style="margin-left: 1.5em" id="section-12.1-3.4">
-            <p id="section-12.1-3.4.1">0x73 0x69 0x70 0x73 0x2F 0x33 ("sips/quic")<a href="#section-12.1-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-12.1-3.4.1">0x73 0x69 0x70 0x73 0x2F 0x71 0x75 0x69 0x63 ("sips/quic")<a href="#section-12.1-3.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-12.1-3.5">Specification:</dt>
@@ -2687,7 +2691,7 @@ the frame that are conditionally present.<a href="#section-12.2.1-4" class="pilc
             <tbody>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#data-frame" class="internal xref">DATA</a><span id="iref-data-134" class="iref"></span>
+                  <a href="#data-frame" class="internal xref">DATA</a><span id="iref-data-133" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x00</code>
@@ -2698,7 +2702,7 @@ the frame that are conditionally present.<a href="#section-12.2.1-4" class="pilc
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#headers-frame" class="internal xref">HEADERS</a><span id="iref-headers-135" class="iref"></span>
+                  <a href="#headers-frame" class="internal xref">HEADERS</a><span id="iref-headers-134" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x01</code>
@@ -2709,7 +2713,7 @@ the frame that are conditionally present.<a href="#section-12.2.1-4" class="pilc
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-136" class="iref"></span>
+                  <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-135" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x02</code>
@@ -2720,7 +2724,7 @@ the frame that are conditionally present.<a href="#section-12.2.1-4" class="pilc
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-137" class="iref"></span>
+                  <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-136" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x04</code>
@@ -2858,7 +2862,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
             <tbody>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_NO_ERROR" class="internal xref">SIP_NO_ERROR</a><span id="iref-sip_no_error-141" class="iref"></span>
+                  <a href="#SIP_NO_ERROR" class="internal xref">SIP_NO_ERROR</a><span id="iref-sip_no_error-140" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0300</code>
@@ -2882,7 +2886,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_INTERNAL_ERROR" class="internal xref">SIP_INTERNAL_ERROR</a><span id="iref-sip_internal_error-143" class="iref"></span>
+                  <a href="#SIP_INTERNAL_ERROR" class="internal xref">SIP_INTERNAL_ERROR</a><span id="iref-sip_internal_error-142" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0302</code>
@@ -2918,7 +2922,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_FRAME_ERROR" class="internal xref">SIP_FRAME_ERROR</a><span id="iref-sip_frame_error-146" class="iref"></span>
+                  <a href="#SIP_FRAME_ERROR" class="internal xref">SIP_FRAME_ERROR</a><span id="iref-sip_frame_error-145" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0305</code>
@@ -2930,7 +2934,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_FRAME_UNEXPECTED" class="internal xref">SIP_FRAME_UNEXPECTED</a><span id="iref-sip_frame_unexpected-147" class="iref"></span>
+                  <a href="#SIP_FRAME_UNEXPECTED" class="internal xref">SIP_FRAME_UNEXPECTED</a><span id="iref-sip_frame_unexpected-146" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0306</code>
@@ -2942,43 +2946,43 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_CANCEL_FRAME_CLOSED" class="internal xref">SIP_CANCEL_FRAME_CLOSED</a><span id="iref-sip_cancel_frame_closed-148" class="iref"></span>
+                  <a href="#SIP_CANCEL_FRAME_CLOSED" class="internal xref">SIP_CANCEL_FRAME_CLOSED</a><span id="iref-sip_cancel_frame_closed-147" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0307</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">A <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-149" class="iref"></span> frame referenced an unopened stream ID.</td>
+                <td class="text-left" rowspan="1" colspan="1">A <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-148" class="iref"></span> frame referenced an unopened stream ID.</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#error-codes" class="auto internal xref">Section 8.1</a>
 </td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_SETTINGS_ERROR" class="internal xref">SIP_SETTINGS_ERROR</a><span id="iref-sip_settings_error-150" class="iref"></span>
+                  <a href="#SIP_SETTINGS_ERROR" class="internal xref">SIP_SETTINGS_ERROR</a><span id="iref-sip_settings_error-149" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0309</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">An error was detected in a <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-151" class="iref"></span> frame.</td>
+                <td class="text-left" rowspan="1" colspan="1">An error was detected in a <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-150" class="iref"></span> frame.</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#error-codes" class="auto internal xref">Section 8.1</a>
 </td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_MISSING_SETTINGS" class="internal xref">SIP_MISSING_SETTINGS</a><span id="iref-sip_missing_settings-152" class="iref"></span>
+                  <a href="#SIP_MISSING_SETTINGS" class="internal xref">SIP_MISSING_SETTINGS</a><span id="iref-sip_missing_settings-151" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x030a</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">No <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-153" class="iref"></span> frame was received.</td>
+                <td class="text-left" rowspan="1" colspan="1">No <a href="#settings-frame" class="internal xref">SETTINGS</a><span id="iref-settings-152" class="iref"></span> frame was received.</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#error-codes" class="auto internal xref">Section 8.1</a>
 </td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_REQUEST_REJECTED" class="internal xref">SIP_REQUEST_REJECTED</a><span id="iref-sip_request_rejected-154" class="iref"></span>
+                  <a href="#SIP_REQUEST_REJECTED" class="internal xref">SIP_REQUEST_REJECTED</a><span id="iref-sip_request_rejected-153" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x030b</code>
@@ -2990,7 +2994,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_REQUEST_CANCELLED" class="internal xref">SIP_REQUEST_CANCELLED</a><span id="iref-sip_request_cancelled-155" class="iref"></span>
+                  <a href="#SIP_REQUEST_CANCELLED" class="internal xref">SIP_REQUEST_CANCELLED</a><span id="iref-sip_request_cancelled-154" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x030c</code>
@@ -3002,7 +3006,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_REQUEST_INCOMPLETE" class="internal xref">SIP_REQUEST_INCOMPLETE</a><span id="iref-sip_request_incomplete-156" class="iref"></span>
+                  <a href="#SIP_REQUEST_INCOMPLETE" class="internal xref">SIP_REQUEST_INCOMPLETE</a><span id="iref-sip_request_incomplete-155" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x030d</code>
@@ -3014,12 +3018,12 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_MESSAGE_ERROR" class="internal xref">SIP_MESSAGE_ERROR</a><span id="iref-sip_message_error-157" class="iref"></span>
+                  <a href="#SIP_MESSAGE_ERROR" class="internal xref">SIP_MESSAGE_ERROR</a><span id="iref-sip_message_error-156" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x030e</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">A SIP message was <a href="#malformed" class="internal xref">malformed</a><span id="iref-malformed-158" class="iref"></span>.</td>
+                <td class="text-left" rowspan="1" colspan="1">A SIP message was <a href="#malformed" class="internal xref">malformed</a><span id="iref-malformed-157" class="iref"></span>.</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#error-codes" class="auto internal xref">Section 8.1</a>
 </td>
@@ -3038,7 +3042,7 @@ that operates on a Specification Required policy to avoid collisions with HTTP/2
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#SIP_HEADER_TOO_LARGE" class="internal xref">SIP_HEADER_TOO_LARGE</a><span id="iref-sip_header_too_large-160" class="iref"></span>
+                  <a href="#SIP_HEADER_TOO_LARGE" class="internal xref">SIP_HEADER_TOO_LARGE</a><span id="iref-sip_header_too_large-159" class="iref"></span>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>0x0311</code>
@@ -3258,7 +3262,7 @@ the following fields:<a href="#section-12.2.4-2" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="RTP-over-QUIC">[RTP-over-QUIC]</dt>
         <dd>
-<span class="refAuthor">Ott, J.</span> and <span class="refAuthor">M. Engelbart</span>, <span class="refTitle">"RTP over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-avtcore-rtp-over-quic-00</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rtp-over-quic-00">https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rtp-over-quic-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Ott, J.</span> and <span class="refAuthor">M. Engelbart</span>, <span class="refTitle">"RTP over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-avtcore-rtp-over-quic-01</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rtp-over-quic-01">https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rtp-over-quic-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RUSH">[RUSH]</dt>
         <dd>
@@ -3274,7 +3278,7 @@ the following fields:<a href="#section-12.2.4-2" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="Warp">[Warp]</dt>
         <dd>
-<span class="refAuthor">Curley, L.</span>, <span class="refTitle">"Warp - Segmented Live Media Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-01</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-01">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-01</a>&gt;</span>. </dd>
+<span class="refAuthor">Curley, L.</span>, <span class="refTitle">"Warp - Segmented Live Media Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-02</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-02">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-02</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="WebTransH3">[WebTransH3]</dt>
       <dd>
@@ -3288,7 +3292,8 @@ the following fields:<a href="#section-12.2.4-2" class="pilcrow">¶</a></p>
       <h2 id="name-acknowledgments">
 <a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">TODO acknowledge.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The author would like to acknowledge Richard Bradbury as the inspiration for the idea behind this document, and to
+Piers O'Hanlon for his review comments.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="static-table">
@@ -3367,7 +3372,7 @@ of common SIP header fields and their values.<a href="#appendix-B-1.1.1" class="
             <td class="text-left" rowspan="1" colspan="1">9</td>
             <td class="text-left" rowspan="1" colspan="1">:method</td>
             <td class="text-left" rowspan="1" colspan="1">
-              <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-161" class="iref"></span>
+              <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-160" class="iref"></span>
 </td>
           </tr>
           <tr>
@@ -3514,7 +3519,7 @@ of common SIP header fields and their values.<a href="#appendix-B-1.1.1" class="
             <td class="text-left" rowspan="1" colspan="1">38</td>
             <td class="text-left" rowspan="1" colspan="1">allow</td>
             <td class="text-left" rowspan="1" colspan="1">
-              <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-162" class="iref"></span>
+              <a href="#cancel-frame" class="internal xref">CANCEL</a><span id="iref-cancel-161" class="iref"></span>
 </td>
           </tr>
           <tr>
@@ -4160,7 +4165,6 @@ of common SIP header fields and their values.<a href="#appendix-B-1.1.1" class="
 <a href="#section-5.2-9" class="auto internal xref">Section 5.2, Paragraph 9</a>; 
 <a href="#section-5.2-9" class="auto internal xref">Section 5.2, Paragraph 9</a>; 
 <a href="#section-10-6" class="auto internal xref">Section 10, Paragraph 6</a>; 
-<a href="#section-10.1-2.2" class="auto internal xref">Section 10.1, Paragraph 2, Item 2</a>; 
 <a href="#section-10.2-2" class="auto internal xref">Section 10.2, Paragraph 2</a><a href="#appendix-C-2.7.2.1.1.2.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>

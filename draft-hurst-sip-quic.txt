@@ -2,10 +2,10 @@
 
 
 
-Session Initiation Protocol Core                                S. Hurst
+Network Working Group                                           S. Hurst
 Internet-Draft                                BBC Research & Development
-Intended status: Experimental                            21 October 2022
-Expires: 24 April 2023
+Intended status: Experimental                            25 October 2022
+Expires: 28 April 2023
 
 
      SIP-over-QUIC: Session Initiation Protocol over QUIC Transport
@@ -32,10 +32,6 @@ About This Document
    information for this document may be found at
    https://datatracker.ietf.org/doc/draft-hurst-sip-quic/.
 
-   Discussion of this document takes place on the WG Individual Draft
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
-
    Source for this draft and an issue tracker can be found at
    https://github.com/bbc/draft-hurst-sip-quic.
 
@@ -54,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2023.
+   This Internet-Draft will expire on 28 April 2023.
 
 Copyright Notice
 
@@ -1175,10 +1171,8 @@ Table of Contents
    *  QRT only defines a way to carry RTP and RTCP in QUIC DATAGRAM
       frames.
 
-   *  RTP-over-QUIC defines a way to carry RTP and RTCP over QUIC STREAM
-      frames (without specifying whether they are to be sent over
-      bidirectional or unidirectional streams) as well as QUIC DATAGRAM
-      frames.
+   *  RTP-over-QUIC defines a way to carry RTP and RTCP over
+      unidirectional QUIC STREAM frames as well as QUIC DATAGRAM frames.
 
    In addition, QRT attempts to define SDP attributes to allow the
    negotiation of QRT sessions in SIP.  [SDP-QUIC] also describes a
@@ -1216,10 +1210,12 @@ Table of Contents
    easily be accommodated by the media stream type reserved in
    Section 5.2.
 
-   [QuicR-Arch] is openly hostile to the usage of SDP, and [QuicR-Proto]
+   [QuicR-Arch] describes SDP as overly complicated, and [QuicR-Proto]
    defines the QuicR Manifest for advertising media sessions and
    endpoint capabilities and, as such, SIP-over-QUIC probably isn't
-   required.
+   required.  However, it is possible that trying to design this
+   manifest mechanism from scratch is likely to require extra time and
+   effort to develop, while SDP is a perfectly usable solution.
 
 11.  Security Considerations
 
@@ -1238,6 +1234,10 @@ Table of Contents
 
 12.  IANA Considerations
 
+      *Author's Note*: This section of the document reflects future IANA
+      registrations, and not current ones.  The intention is for these
+      registrations to occur once this Internet-Draft becomes an RFC.
+
    This document registers a new ALPN protocol IDs (Section 12.1) and
    creates new registries that manage the assignment of code points in
    SIP-over-QUIC (Section 12.2).
@@ -1252,7 +1252,8 @@ Table of Contents
 
    Protocol:  SIP-over-QUIC
 
-   Identification Sequence:  0x73 0x69 0x70 0x73 0x2F 0x33 ("sips/quic")
+   Identification Sequence:  0x73 0x69 0x70 0x73 0x2F 0x71 0x75 0x69
+      0x63 ("sips/quic")
 
    Specification:  This document
 
@@ -1639,8 +1640,8 @@ Table of Contents
    [RTP-over-QUIC]
               Ott, J. and M. Engelbart, "RTP over QUIC", Work in
               Progress, Internet-Draft, draft-ietf-avtcore-rtp-over-
-              quic-00, <https://datatracker.ietf.org/doc/html/draft-
-              ietf-avtcore-rtp-over-quic-00>.
+              quic-01, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-avtcore-rtp-over-quic-01>.
 
    [RUSH]     Pugin, K., Frindell, A., Cenzano, J., and J. Weissman,
               "RUSH - Reliable (unreliable) streaming protocol", Work in
@@ -1660,9 +1661,9 @@ Table of Contents
               <https://www.rfc-editor.org/rfc/rfc6066>.
 
    [Warp]     Curley, L., "Warp - Segmented Live Media Transport", Work
-              in Progress, Internet-Draft, draft-lcurley-warp-01,
+              in Progress, Internet-Draft, draft-lcurley-warp-02,
               <https://datatracker.ietf.org/doc/html/draft-lcurley-warp-
-              01>.
+              02>.
 
    [WebTransH3]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
@@ -1673,7 +1674,9 @@ Table of Contents
 
 Appendix A.  Acknowledgments
 
-   TODO acknowledge.
+   The author would like to acknowledge Richard Bradbury as the
+   inspiration for the idea behind this document, and to Piers O'Hanlon
+   for his review comments.
 
 Appendix B.  QPACK Static Table
 
@@ -1973,8 +1976,8 @@ Index
             Paragraph 5; Section 5.2, Paragraph 5; Section 5.2,
             Paragraph 5; Section 5.2, Paragraph 7; Section 5.2,
             Paragraph 9; Section 5.2, Paragraph 9; Section 5.2,
-            Paragraph 9; Section 10, Paragraph 6; Section 10.1,
-            Paragraph 2, Item 2; Section 10.2, Paragraph 2
+            Paragraph 9; Section 10, Paragraph 6; Section 10.2,
+            Paragraph 2
 
 Author's Address
 
