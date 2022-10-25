@@ -47,7 +47,7 @@ informative:
     title: "RTP over QUIC"
     date: {DATE}
     seriesinfo:
-      Internet-Draft: draft-ietf-avtcore-rtp-over-quic-00
+      Internet-Draft: draft-ietf-avtcore-rtp-over-quic-01
     author:
       -
         ins: J. Ott
@@ -115,7 +115,7 @@ informative:
     title: "Warp - Segmented Live Media Transport"
     date: {DATE}
     seriesinfo:
-      Internet-Draft: draft-lcurley-warp-01
+      Internet-Draft: draft-lcurley-warp-02
     author:
       -
         ins: L. Curley
@@ -1068,8 +1068,8 @@ and SDP already closely aligned with RTP media sessions, adapting SIP-over-QUIC 
 transport connection as RTP/RTCP would save at least one network round trip.
 
 * QRT only defines a way to carry RTP and RTCP in QUIC `DATAGRAM` frames.
-* RTP-over-QUIC defines a way to carry RTP and RTCP over QUIC `STREAM` frames (without specifying whether they are
-to be sent over bidirectional or unidirectional streams) as well as QUIC `DATAGRAM` frames.
+* RTP-over-QUIC defines a way to carry RTP and RTCP over unidirectional QUIC `STREAM` frames as well as QUIC `DATAGRAM`
+frames.
 
 In addition, QRT attempts to define SDP attributes to allow the negotiation of QRT sessions in SIP. {{SDP-QUIC}}
 also describes a different set of SDP attributes to perform a similar task.
