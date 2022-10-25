@@ -10,13 +10,9 @@ date:
 consensus: true
 v: 3
 area: ART
-workgroup: Session Initiation Protocol Core
 keyword: Internet-Draft
 venue:
-  group: WG
   type: "Individual Draft"
-  mail: WG@example.com
-  arch: https://example.com/WG
   github: bbc/draft-hurst-sip-quic
   latest: https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html
 
