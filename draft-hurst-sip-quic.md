@@ -1301,7 +1301,8 @@ The entries is {{fig-iana-stream-type-table}} are registered by this document.
 
 # Acknowledgments
 
-TODO acknowledge.
+The author would like to acknowledge Richard Bradbury as the inspiration for the idea behind this document, and to
+Piers O'Hanlon for his review comments.
 
 # QPACK Static Table {#static-table}
 
