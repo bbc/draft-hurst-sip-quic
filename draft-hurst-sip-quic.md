@@ -14,7 +14,7 @@ keyword: Internet-Draft
 venue:
   type: "Individual Draft"
   github: bbc/draft-hurst-sip-quic
-  latest: https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html
+  latest: https://bbc.github.io/draft-hurst-sip-quic/draft-hurst-sip-quic.html
 
 author:
  -
