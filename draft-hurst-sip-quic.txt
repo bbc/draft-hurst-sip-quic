@@ -4,8 +4,8 @@
 
 Network Working Group                                           S. Hurst
 Internet-Draft                                BBC Research & Development
-Intended status: Experimental                            25 October 2022
-Expires: 28 April 2023
+Intended status: Experimental                            6 November 2022
+Expires: 10 May 2023
 
 
      SIP-over-QUIC: Session Initiation Protocol over QUIC Transport
@@ -27,9 +27,9 @@ About This Document
 
    This note is to be removed before publishing as an RFC.
 
-   The latest revision of this draft can be found at https://probable-
-   train-1d24d093.pages.github.io/draft-hurst-sip-quic.html.  Status
-   information for this document may be found at
+   The latest revision of this draft can be found at
+   https://bbc.github.io/draft-hurst-sip-quic/draft-hurst-sip-quic.html.
+   Status information for this document may be found at
    https://datatracker.ietf.org/doc/draft-hurst-sip-quic/.
 
    Source for this draft and an issue tracker can be found at
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 April 2023.
+   This Internet-Draft will expire on 10 May 2023.
 
 Copyright Notice
 
@@ -1356,13 +1356,16 @@ Table of Contents
    The entries in Table 3 are registered by this document.
 
    +===================================+=====+===============+=========+
-   | Parameter Name                    |Value|Specification  |Default  |
+   | Parameter Name                    |Value| Specification |Default  |
    +===================================+=====+===============+=========+
-   | SETTINGS_QPACK_MAX_TABLE_CAPACITY |0x01 |Section 7.2.4.1|0        |
+   | SETTINGS_QPACK_MAX_TABLE_CAPACITY |0x01 | Section       |0        |
+   |                                   |     | 7.2.4.1       |         |
    +-----------------------------------+-----+---------------+---------+
-   | SETTINGS_MAX_FIELD_SECTION_SIZE   |0x06 |Section 7.2.4.1|Unlimited|
+   | SETTINGS_MAX_FIELD_SECTION_SIZE   |0x06 | Section       |Unlimited|
+   |                                   |     | 7.2.4.1       |         |
    +-----------------------------------+-----+---------------+---------+
-   | SETTINGS_QPACK_BLOCKED_STREAMS    |0x07 |Section 7.2.4.1|0        |
+   | SETTINGS_QPACK_BLOCKED_STREAMS    |0x07 | Section       |0        |
+   |                                   |     | 7.2.4.1       |         |
    +-----------------------------------+-----+---------------+---------+
 
                  Table 3: Initial SIP-over-QUIC Parameters
@@ -1390,83 +1393,83 @@ Table of Contents
    Required policy to avoid collisions with HTTP/2 and HTTP/3 error
    codes.
 
-   +===============================+======+============+===============+
-   | Name                          |Value |Description | Specification |
-   +===============================+======+============+===============+
-   | SIP_NO_ERROR                  |0x0300|No error.   | Section 8.1   |
-   +-------------------------------+------+------------+---------------+
-   | SIP_GENERAL_PROTOCOL_ERROR    |0x0301|Non-specific| Section 8.1   |
-   |                               |      |error code. |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_INTERNAL_ERROR            |0x0302|An internal | Section 8.1   |
-   |                               |      |error       |               |
-   |                               |      |occurred.   |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_STREAM_CREATION_ERROR     |0x0303|Peer created| Section 8.1   |
-   |                               |      |an          |               |
-   |                               |      |unacceptable|               |
-   |                               |      |stream.     |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_CLOSED_CRITICAL_STREAM    |0x0304|A required  | Section 8.1   |
-   |                               |      |stream was  |               |
-   |                               |      |closed.     |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_FRAME_ERROR               |0x0305|An invalid  | Section 8.1   |
-   |                               |      |frame was   |               |
-   |                               |      |received.   |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_FRAME_UNEXPECTED          |0x0306|A not       | Section 8.1   |
-   |                               |      |permitted   |               |
-   |                               |      |frame was   |               |
-   |                               |      |received.   |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_CANCEL_FRAME_CLOSED       |0x0307|A CANCEL    | Section 8.1   |
-   |                               |      |frame       |               |
-   |                               |      |referenced  |               |
-   |                               |      |an unopened |               |
-   |                               |      |stream ID.  |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_SETTINGS_ERROR            |0x0309|An error was| Section 8.1   |
-   |                               |      |detected in |               |
-   |                               |      |a SETTINGS  |               |
-   |                               |      |frame.      |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_MISSING_SETTINGS          |0x030a|No SETTINGS | Section 8.1   |
-   |                               |      |frame was   |               |
-   |                               |      |received.   |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_REQUEST_REJECTED          |0x030b|User agent  | Section 8.1   |
-   |                               |      |server      |               |
-   |                               |      |rejected a  |               |
-   |                               |      |request.    |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_REQUEST_CANCELLED         |0x030c|The request | Section 8.1   |
-   |                               |      |or its      |               |
-   |                               |      |response is |               |
-   |                               |      |cancelled.  |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_REQUEST_INCOMPLETE        |0x030d|Stream      | Section 8.1   |
-   |                               |      |terminated  |               |
-   |                               |      |without a   |               |
-   |                               |      |full        |               |
-   |                               |      |request.    |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_MESSAGE_ERROR             |0x030e|A SIP       | Section 8.1   |
-   |                               |      |message was |               |
-   |                               |      |malformed.  |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_HEADER_COMPRESSION_FAILED |0x0310|Failed to   | Section 8.1   |
-   |                               |      |interpret an|               |
-   |                               |      |encoded     |               |
-   |                               |      |field       |               |
-   |                               |      |section.    |               |
-   +-------------------------------+------+------------+---------------+
-   | SIP_HEADER_TOO_LARGE          |0x0311|Received    | Section 8.1   |
-   |                               |      |encoded     |               |
-   |                               |      |field       |               |
-   |                               |      |section is  |               |
-   |                               |      |too large.  |               |
-   +-------------------------------+------+------------+---------------+
+   +===============================+======+==============+=============+
+   | Name                          |Value | Description  |Specification|
+   +===============================+======+==============+=============+
+   | SIP_NO_ERROR                  |0x0300| No error.    |Section 8.1  |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_GENERAL_PROTOCOL_ERROR    |0x0301| Non-specific |Section 8.1  |
+   |                               |      | error code.  |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_INTERNAL_ERROR            |0x0302| An internal  |Section 8.1  |
+   |                               |      | error        |             |
+   |                               |      | occurred.    |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_STREAM_CREATION_ERROR     |0x0303| Peer created |Section 8.1  |
+   |                               |      | an           |             |
+   |                               |      | unacceptable |             |
+   |                               |      | stream.      |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_CLOSED_CRITICAL_STREAM    |0x0304| A required   |Section 8.1  |
+   |                               |      | stream was   |             |
+   |                               |      | closed.      |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_FRAME_ERROR               |0x0305| An invalid   |Section 8.1  |
+   |                               |      | frame was    |             |
+   |                               |      | received.    |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_FRAME_UNEXPECTED          |0x0306| A not        |Section 8.1  |
+   |                               |      | permitted    |             |
+   |                               |      | frame was    |             |
+   |                               |      | received.    |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_CANCEL_FRAME_CLOSED       |0x0307| A CANCEL     |Section 8.1  |
+   |                               |      | frame        |             |
+   |                               |      | referenced   |             |
+   |                               |      | an unopened  |             |
+   |                               |      | stream ID.   |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_SETTINGS_ERROR            |0x0309| An error was |Section 8.1  |
+   |                               |      | detected in  |             |
+   |                               |      | a SETTINGS   |             |
+   |                               |      | frame.       |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_MISSING_SETTINGS          |0x030a| No SETTINGS  |Section 8.1  |
+   |                               |      | frame was    |             |
+   |                               |      | received.    |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_REQUEST_REJECTED          |0x030b| User agent   |Section 8.1  |
+   |                               |      | server       |             |
+   |                               |      | rejected a   |             |
+   |                               |      | request.     |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_REQUEST_CANCELLED         |0x030c| The request  |Section 8.1  |
+   |                               |      | or its       |             |
+   |                               |      | response is  |             |
+   |                               |      | cancelled.   |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_REQUEST_INCOMPLETE        |0x030d| Stream       |Section 8.1  |
+   |                               |      | terminated   |             |
+   |                               |      | without a    |             |
+   |                               |      | full         |             |
+   |                               |      | request.     |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_MESSAGE_ERROR             |0x030e| A SIP        |Section 8.1  |
+   |                               |      | message was  |             |
+   |                               |      | malformed.   |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_HEADER_COMPRESSION_FAILED |0x0310| Failed to    |Section 8.1  |
+   |                               |      | interpret an |             |
+   |                               |      | encoded      |             |
+   |                               |      | field        |             |
+   |                               |      | section.     |             |
+   +-------------------------------+------+--------------+-------------+
+   | SIP_HEADER_TOO_LARGE          |0x0311| Received     |Section 8.1  |
+   |                               |      | encoded      |             |
+   |                               |      | field        |             |
+   |                               |      | section is   |             |
+   |                               |      | too large.   |             |
+   +-------------------------------+------+--------------+-------------+
 
                  Table 4: Initial SIP-over-QUIC Error Codes
 
