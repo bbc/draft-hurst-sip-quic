@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-04-20T00:13:44.785142+00:00",
+  "timestamp": "2023-04-23T00:15:19.366381+00:00",
   "repo": "bbc/draft-hurst-sip-quic",
   "labels": [
     {
@@ -49,7 +49,24 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 3,
+      "id": "I_kwDOH4qyYM5j9tKt",
+      "title": "README.md link to draft broken",
+      "url": "https://github.com/bbc/draft-hurst-sip-quic/issues/3",
+      "state": "OPEN",
+      "author": "sharlow",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "README.md has a link pointing to https://probable-train-1d24d093.pages.github.io/draft-hurst-sip-quic.html which is 404.\r\n\r\nIt looks like the actual draft itself had its link updated to https://bbc.github.io/draft-hurst-sip-quic/draft-hurst-sip-quic.html in https://github.com/bbc/draft-hurst-sip-quic/commit/615e0341b8dbc2feffdb1026301ec4523a352779 but the readme was missed.\r\n\r\nObviously not a huge problem, just noticed it and figured I'd point it out.",
+      "createdAt": "2023-04-20T17:19:02Z",
+      "updatedAt": "2023-04-20T17:19:02Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": [
     {
       "number": 1,
